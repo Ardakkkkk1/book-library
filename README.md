@@ -4,7 +4,9 @@ A production-ready full-stack web application for managing a digital book collec
 
 ## 🌐 Live Deployment
 
-**Coming Soon** - Deploy to Render, Railway, or Heroku (see [Deployment Guide](#deployment-guide) below)
+Deployed URL: `https://YOUR-APP.onrender.com`
+
+Replace `YOUR-APP` with your actual deployment URL after deploying (see [Deployment Guide](#deployment-guide) below).
 
 ## Team Members
 
