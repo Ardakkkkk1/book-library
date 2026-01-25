@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us - Book Library</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <div class="container">
+        <h1 class="logo">Book Library</h1>
+        <ul class="nav-links">
+          <li><a href="/">Home</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Contact Hero Section -->
+    <section class="contact-hero">
+      <div class="container">
+        <h2 class="hero-title">Contact Us</h2>
+        <p class="hero-subtitle">We'd love to hear from you!</p>
+      </div>
+    </section>
+
+    <!-- Contact Form Section -->
+    <section class="contact-section">
+      <div class="container">
+        <div class="contact-wrapper">
+          <div class="contact-info">
+            <h2>Get in Touch</h2>
+            <p>
+              Have questions, suggestions, or feedback about Book Library? We'd be delighted to hear from you. 
+              Fill out the form below and we'll get back to you as soon as possible.
+            </p>
+            <div class="contact-details">
+              <div class="detail">
+                <h4>Response Time</h4>
+                <p>We typically respond within 24-48 hours</p>
+              </div>
+              <div class="detail">
+                <h4>Support</h4>
+                <p>Available Monday to Friday, 9 AM - 5 PM</p>
+              </div>
+            </div>
+          </div>
+
+          <form class="contact-form" id="contactForm" method="post" action="/contact">
+            <div class="form-group">
+              <label for="name">Name <span class="required">*</span></label>
+              <input 
+                type="text" 
+                id="name" 
+                name="name" 
+                placeholder="Enter your full name"
+                autocomplete="name"
+                required
+              >
+              <span class="error-message" id="nameError"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email <span class="required">*</span></label>
+              <input 
+                type="email" 
+                id="email" 
+                name="email" 
+                placeholder="Enter your email address"
+                autocomplete="email"
+                required
+              >
+              <span class="error-message" id="emailError"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="message">Message <span class="required">*</span></label>
+              <textarea 
+                id="message" 
+                name="message" 
+                placeholder="Enter your message (minimum 10 characters)"
+                rows="6"
+                autocomplete="off"
+                required
+              ></textarea>
+              <span class="error-message" id="messageError"></span>
+            </div>
+
+            <button type="submit" class="submit-btn">Send Message</button>
+            <p class="form-note">All fields marked with <span class="required">*</span> are required</p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2025 Book Library. All rights reserved.</p>
+      <p>A student project created for web development course.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Client-side form validation
+    const contactForm = document.getElementById('contactForm');
+    const nameInput = document.getElementById('name');
+    const emailInput = document.getElementById('email');
+    const messageInput = document.getElementById('message');
+
+    const nameError = document.getElementById('nameError');
+    const emailError = document.getElementById('emailError');
+    const messageError = document.getElementById('messageError');
+
+    // Clear error message when user starts typing
+    nameInput.addEventListener('focus', () => {
+      nameError.textContent = '';
+      nameInput.classList.remove('error-field');
+    });
+
+    emailInput.addEventListener('focus', () => {
+      emailError.textContent = '';
+      emailInput.classList.remove('error-field');
+    });
+
+    messageInput.addEventListener('focus', () => {
+      messageError.textContent = '';
+      messageInput.classList.remove('error-field');
+    });
+
+    // Validate individual fields
+    function validateName() {
+      const name = nameInput.value.trim();
+      if (!name) {
+        nameError.textContent = 'Name is required';
+        nameInput.classList.add('error-field');
+        return false;
+      }
+      if (name.length < 2) {
+        nameError.textContent = 'Name must be at least 2 characters';
+        nameInput.classList.add('error-field');
+        return false;
+      }
+      return true;
+    }
+
+    function validateEmail() {
+      const email = emailInput.value.trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email) {
+        emailError.textContent = 'Email is required';
+        emailInput.classList.add('error-field');
+        return false;
+      }
+      if (!emailRegex.test(email)) {
+        emailError.textContent = 'Please enter a valid email address';
+        emailInput.classList.add('error-field');
+        return false;
+      }
+      return true;
+    }
+
+    function validateMessage() {
+      const message = messageInput.value.trim();
+      if (!message) {
+        messageError.textContent = 'Message is required';
+        messageInput.classList.add('error-field');
+        return false;
+      }
+      if (message.length < 10) {
+        messageError.textContent = 'Message must be at least 10 characters';
+        messageInput.classList.add('error-field');
+        return false;
+      }
+      return true;
+    }
+
+    // Form submission handler
+    contactForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      // Reset error messages
+      nameError.textContent = '';
+      emailError.textContent = '';
+      messageError.textContent = '';
+
+      nameInput.classList.remove('error-field');
+      emailInput.classList.remove('error-field');
+      messageInput.classList.remove('error-field');
+
+      // Validate all fields
+      const isNameValid = validateName();
+      const isEmailValid = validateEmail();
+      const isMessageValid = validateMessage();
+
+      // If all fields are valid, submit the form
+      if (isNameValid && isEmailValid && isMessageValid) {
+        contactForm.submit();
+      }
+    });
+
+    // Real-time validation on blur
+    nameInput.addEventListener('blur', validateName);
+    emailInput.addEventListener('blur', validateEmail);
+    messageInput.addEventListener('blur', validateMessage);
+  </script>
+</body>
+</html>
