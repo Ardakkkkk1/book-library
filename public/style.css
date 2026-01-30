@@ -320,9 +320,6 @@ header {
   opacity: 0.9;
   margin-top: 0.5rem;
 }
-  color: var(--text-light);
-  line-height: 2;
-}
 
 .info-content li {
   margin-bottom: 0.8rem;

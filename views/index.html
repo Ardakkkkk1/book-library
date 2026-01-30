@@ -13,6 +13,7 @@
         <h1 class="logo">Book Library</h1>
         <ul class="nav-links">
           <li><a href="/">Home</a></li>
+          <li><a href="/books">Books</a></li>
           <li><a href="/about">About</a></li>
           <li><a href="/contact">Contact</a></li>
         </ul>
@@ -30,7 +31,7 @@
           A modern web application designed to help you build and manage your personal digital library. 
           Browse, categorize, rate, and share your favorite books all in one place.
         </p>
-        <button class="cta-button">Get Started</button>
+        <a class="cta-button" href="/books">Add a Book</a>
       </div>
     </section>
 
@@ -205,9 +206,12 @@
       });
     });
 
-    document.querySelector('.cta-button').addEventListener('click', () => {
-      alert('Feature coming soon.');
-    });
+    const ctaButton = document.querySelector('.cta-button');
+    if (ctaButton) {
+      ctaButton.addEventListener('click', () => {
+        window.location.href = '/books';
+      });
+    }
   </script>
 </body>
 </html>

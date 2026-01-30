@@ -16,11 +16,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'books.html'));
+  res.sendFile(path.join(__dirname, 'views', 'index.html'));
 });
 
 app.get('/home', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'index.html'));
+  res.redirect('/');
+});
+
+app.get('/books', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'books.html'));
 });
 
 app.get('/about', (req, res) => {
