@@ -45,6 +45,31 @@
       opacity: 0.9;
     }
 
+    .header-links {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .header-link {
+      display: inline-block;
+      padding: 10px 18px;
+      border-radius: 6px;
+      text-decoration: none;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.2);
+      transition: all 0.3s ease;
+      font-weight: 600;
+      font-size: 0.95em;
+    }
+
+    .header-link:hover {
+      background: rgba(255, 255, 255, 0.35);
+      transform: translateY(-1px);
+    }
     .content {
       padding: 40px;
     }
@@ -417,6 +442,11 @@
     <header>
       <h1>📚 Book Library Manager</h1>
       <p>Manage your personal book collection</p>
+      <div class="header-links">
+        <a class="header-link" href="/home">Home</a>
+        <a class="header-link" href="/about">About</a>
+        <a class="header-link" href="/contact">Contact</a>
+      </div>
     </header>
 
     <div class="content">
