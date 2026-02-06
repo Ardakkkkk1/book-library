@@ -1,32 +1,43 @@
 const { MongoClient, ObjectId } = require('mongodb');
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017';
-const DB_NAME = 'book_library';
-const COLLECTION_NAME = 'books';
+const DB_NAME = process.env.DB_NAME || 'book_library';
+const BOOKS_COLLECTION_NAME = 'books';
+const USERS_COLLECTION_NAME = 'users';
 
 let db = null;
 let client = null;
+
+async function ensureCollection(dbInstance, name) {
+  const existing = await dbInstance.listCollections({ name }).toArray();
+  if (existing.length === 0) {
+    await dbInstance.createCollection(name);
+  }
+}
+
+async function ensureIndexes(dbInstance) {
+  const books = dbInstance.collection(BOOKS_COLLECTION_NAME);
+  await books.createIndex({ title: 1 });
+  await books.createIndex({ author: 1 });
+  await books.createIndex({ genre: 1 });
+  await books.createIndex({ rating: -1 });
+  await books.createIndex({ published_year: -1 });
+
+  const users = dbInstance.collection(USERS_COLLECTION_NAME);
+  await users.createIndex({ username: 1 }, { unique: true });
+}
 
 async function connectDB() {
   try {
     client = new MongoClient(MONGO_URI);
     await client.connect();
-    console.log('✓ Connected to MongoDB');
     db = client.db(DB_NAME);
-    
-    // Create collection if it doesn't exist
-    const collections = await db.listCollections().toArray();
-    const collectionExists = collections.some(col => col.name === COLLECTION_NAME);
-    
-    if (!collectionExists) {
-      await db.createCollection(COLLECTION_NAME);
-      // Create indexes
-      await db.collection(COLLECTION_NAME).createIndex({ title: 1 });
-      await db.collection(COLLECTION_NAME).createIndex({ author: 1 });
-      await db.collection(COLLECTION_NAME).createIndex({ genre: 1 });
-      console.log(`✓ Created collection '${COLLECTION_NAME}' with indexes`);
-    }
-    
+
+    await ensureCollection(db, BOOKS_COLLECTION_NAME);
+    await ensureCollection(db, USERS_COLLECTION_NAME);
+    await ensureIndexes(db);
+
+    console.log('Connected to MongoDB');
     return db;
   } catch (error) {
     console.error('MongoDB connection error:', error);
@@ -70,5 +81,7 @@ module.exports = {
   closeDB,
   isValidObjectId,
   getObjectId,
-  COLLECTION_NAME
+  BOOKS_COLLECTION_NAME,
+  USERS_COLLECTION_NAME,
+  COLLECTION_NAME: BOOKS_COLLECTION_NAME
 };

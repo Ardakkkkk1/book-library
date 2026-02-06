@@ -3,826 +3,1002 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Book Library - Manage Your Collection</title>
-  <link rel="stylesheet" href="/style.css">
+  <title>Book Library Manager</title>
   <style>
+    :root {
+      color-scheme: light;
+      --bg: #f2f5f9;
+      --panel: #ffffff;
+      --ink: #1f2937;
+      --ink-soft: #4b5563;
+      --line: #d1d5db;
+      --accent: #0f766e;
+      --accent-2: #115e59;
+      --danger: #b91c1c;
+      --danger-2: #991b1b;
+      --warn: #9a3412;
+      --ok-bg: #dcfce7;
+      --ok-text: #166534;
+      --err-bg: #fee2e2;
+      --err-text: #991b1b;
+      --info-bg: #dbeafe;
+      --info-text: #1d4ed8;
+    }
+
     * {
-      margin: 0;
-      padding: 0;
       box-sizing: border-box;
     }
 
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(180deg, #e2e8f0 0%, var(--bg) 24%);
+      color: var(--ink);
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
       padding: 20px;
     }
 
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      background: white;
-      border-radius: 15px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      overflow: hidden;
+    .header {
+      background: linear-gradient(135deg, #0f766e 0%, #0f4c81 100%);
+      color: #fff;
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      box-shadow: 0 8px 24px rgba(15, 76, 129, 0.2);
     }
 
-    header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 40px 20px;
-      text-align: center;
+    .header h1 {
+      margin: 0;
+      font-size: 1.9rem;
     }
 
-    header h1 {
-      font-size: 2.5em;
-      margin-bottom: 10px;
+    .header p {
+      margin: 6px 0 0;
+      opacity: 0.95;
     }
 
-    header p {
-      font-size: 1.1em;
-      opacity: 0.9;
-    }
-
-    .header-links {
-      margin-top: 20px;
+    .nav {
       display: flex;
       gap: 10px;
-      justify-content: center;
       flex-wrap: wrap;
     }
 
-    .header-link {
-      display: inline-block;
-      padding: 10px 18px;
-      border-radius: 6px;
-      text-decoration: none;
+    .nav a {
       color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      background: rgba(255, 255, 255, 0.2);
-      transition: all 0.3s ease;
+      text-decoration: none;
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+    }
+
+    .main {
+      display: grid;
+      gap: 16px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .panel h2 {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+
+    .badge {
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 0.82rem;
       font-weight: 600;
-      font-size: 0.95em;
     }
 
-    .header-link:hover {
-      background: rgba(255, 255, 255, 0.35);
-      transform: translateY(-1px);
-    }
-    .content {
-      padding: 40px;
+    .badge-off {
+      background: #ffedd5;
+      color: var(--warn);
     }
 
-    .section {
-      margin-bottom: 50px;
+    .badge-on {
+      background: #dcfce7;
+      color: #166534;
     }
 
-    .section h2 {
-      font-size: 1.8em;
-      color: #333;
-      margin-bottom: 25px;
-      border-bottom: 3px solid #667eea;
-      padding-bottom: 10px;
+    .inline-form {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr auto;
+      gap: 10px;
+      margin-bottom: 8px;
     }
 
-    /* Form Styles */
+    .hint {
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 0.9rem;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .stat-label {
+      color: var(--ink-soft);
+      font-size: 0.9rem;
+    }
+
     .form-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 15px;
-      margin-bottom: 20px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
     }
 
     .form-group {
       display: flex;
       flex-direction: column;
+      gap: 5px;
+    }
+
+    .form-group.full {
+      grid-column: 1 / -1;
     }
 
     label {
+      font-size: 0.9rem;
       font-weight: 600;
-      margin-bottom: 8px;
-      color: #333;
     }
 
-    input, textarea, select {
-      padding: 12px;
-      border: 2px solid #e0e0e0;
+    input,
+    textarea,
+    button {
+      font: inherit;
+    }
+
+    input,
+    textarea {
+      border: 1px solid var(--line);
       border-radius: 8px;
-      font-size: 1em;
-      font-family: inherit;
-      transition: border-color 0.3s;
-    }
-
-    input:focus, textarea:focus, select:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      padding: 10px;
+      background: #fff;
+      color: var(--ink);
     }
 
     textarea {
+      min-height: 90px;
       resize: vertical;
-      min-height: 80px;
     }
 
-    .button-group {
+    input:disabled,
+    textarea:disabled,
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .button-row {
       display: flex;
       gap: 10px;
-      margin-top: 20px;
+      flex-wrap: wrap;
+      margin-top: 6px;
     }
 
     button {
-      padding: 12px 30px;
       border: none;
       border-radius: 8px;
-      font-size: 1em;
-      font-weight: 600;
+      padding: 10px 14px;
       cursor: pointer;
-      transition: all 0.3s;
+      font-weight: 600;
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
+      background: var(--accent);
+      color: #fff;
     }
 
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    .btn-primary:hover:not(:disabled) {
+      background: var(--accent-2);
     }
 
     .btn-secondary {
-      background: #f0f0f0;
-      color: #333;
+      background: #e2e8f0;
+      color: #1f2937;
     }
 
-    .btn-secondary:hover {
-      background: #e0e0e0;
+    .btn-secondary:hover:not(:disabled) {
+      background: #cbd5e1;
     }
 
     .btn-danger {
-      background: #ff6b6b;
-      color: white;
+      background: var(--danger);
+      color: #fff;
     }
 
-    .btn-danger:hover {
-      background: #ff5252;
+    .btn-danger:hover:not(:disabled) {
+      background: var(--danger-2);
     }
 
-    /* Table Styles */
-    .table-container {
+    .btn-small {
+      font-size: 0.85rem;
+      padding: 6px 10px;
+    }
+
+    .lock-label {
+      font-size: 0.82rem;
+      color: var(--ink-soft);
+      background: #f3f4f6;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 10px;
+    }
+
+    .loading {
+      padding: 14px;
+      color: var(--ink-soft);
+    }
+
+    .table-wrap {
       overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
+      min-width: 760px;
+    }
+
+    th,
+    td {
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 0.92rem;
     }
 
     th {
-      background: #f5f5f5;
-      padding: 15px;
-      text-align: left;
-      font-weight: 600;
-      color: #333;
-      border-bottom: 2px solid #e0e0e0;
-    }
-
-    td {
-      padding: 15px;
-      border-bottom: 1px solid #e0e0e0;
-    }
-
-    tr:hover {
-      background: #f9f9f9;
+      background: #f8fafc;
+      font-weight: 700;
     }
 
     .rating {
+      background: #ecfeff;
+      color: #0e7490;
+      border: 1px solid #a5f3fc;
+      border-radius: 999px;
+      padding: 2px 8px;
       display: inline-block;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .actions {
       display: flex;
-      gap: 10px;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
-    .btn-small {
-      padding: 6px 12px;
-      font-size: 0.9em;
+    .muted {
+      color: var(--ink-soft);
+      font-size: 0.85rem;
     }
 
-    /* Modal Styles */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      animation: fadeIn 0.3s;
+    .empty {
+      padding: 18px;
+      color: var(--ink-soft);
+      text-align: center;
     }
 
-    .modal.show {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .modal-content {
-      background-color: white;
-      padding: 40px;
-      border-radius: 15px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      max-width: 600px;
-      width: 90%;
-      max-height: 80vh;
-      overflow-y: auto;
-      animation: slideIn 0.3s;
-    }
-
-    @keyframes slideIn {
-      from {
-        transform: translateY(-50px);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 25px;
-      border-bottom: 2px solid #e0e0e0;
-      padding-bottom: 15px;
-    }
-
-    .modal-header h2 {
-      color: #333;
-      font-size: 1.5em;
-    }
-
-    .close-btn {
-      background: none;
-      border: none;
-      font-size: 28px;
-      cursor: pointer;
-      color: #999;
-      padding: 0;
-    }
-
-    .close-btn:hover {
-      color: #333;
-    }
-
-    /* Alert Styles */
     .alert {
-      padding: 15px;
-      margin-bottom: 20px;
-      border-radius: 8px;
       display: none;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      border: 1px solid transparent;
     }
 
     .alert.show {
       display: block;
-      animation: slideDown 0.3s;
-    }
-
-    @keyframes slideDown {
-      from {
-        transform: translateY(-20px);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
     }
 
     .alert-success {
-      background: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
+      background: var(--ok-bg);
+      color: var(--ok-text);
+      border-color: #86efac;
     }
 
     .alert-error {
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
+      background: var(--err-bg);
+      color: var(--err-text);
+      border-color: #fca5a5;
     }
 
     .alert-info {
-      background: #d1ecf1;
-      color: #0c5460;
-      border: 1px solid #bee5eb;
+      background: var(--info-bg);
+      color: var(--info-text);
+      border-color: #93c5fd;
     }
 
-    /* Loading Spinner */
-    .loading {
-      display: none;
-      text-align: center;
-      padding: 40px;
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 1000;
     }
 
-    .loading.show {
-      display: block;
+    .modal-card {
+      background: #fff;
+      width: min(800px, 100%);
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      padding: 18px;
     }
 
-    .spinner {
-      border: 4px solid #f0f0f0;
-      border-top: 4px solid #667eea;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 20px;
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    .modal-head h3 {
+      margin: 0;
     }
 
-    /* Stats */
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-
-    .stat-card {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 25px;
-      border-radius: 10px;
-      text-align: center;
-      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
-    }
-
-    .stat-number {
-      font-size: 2.5em;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-
-    .stat-label {
-      font-size: 0.95em;
-      opacity: 0.9;
-    }
-
-    /* Empty State */
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: #999;
-    }
-
-    .empty-state-icon {
-      font-size: 4em;
-      margin-bottom: 20px;
-      opacity: 0.5;
-    }
-
-    .empty-state p {
-      font-size: 1.1em;
-      margin-bottom: 20px;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      header h1 {
-        font-size: 1.8em;
+    @media (max-width: 900px) {
+      .form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
-      .content {
-        padding: 20px;
+      .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .inline-form {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .stats {
+        grid-template-columns: 1fr;
       }
 
       .form-grid {
         grid-template-columns: 1fr;
       }
-
-      table {
-        font-size: 0.9em;
-      }
-
-      th, td {
-        padding: 10px;
-      }
-
-      .actions {
-        flex-direction: column;
-      }
-
-      .btn-small {
-        width: 100%;
-      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>📚 Book Library Manager</h1>
-      <p>Manage your personal book collection</p>
-      <div class="header-links">
-        <a class="header-link" href="/home">Home</a>
-        <a class="header-link" href="/about">About</a>
-        <a class="header-link" href="/contact">Contact</a>
+  <div class="page">
+    <header class="header">
+      <div>
+        <h1>Book Library Manager</h1>
+        <p>Session-based authentication and protected CRUD operations</p>
       </div>
+      <nav class="nav">
+        <a href="/home">Landing</a>
+        <a href="/about">About</a>
+        <a href="/contact">Contact</a>
+      </nav>
     </header>
 
-    <div class="content">
-      <!-- Alert Messages -->
+    <main class="main">
       <div id="alertBox" class="alert"></div>
 
-      <!-- Stats Section -->
-      <div class="stats">
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Authentication</h2>
+          <span id="authBadge" class="badge badge-off">Not authenticated</span>
+        </div>
+
+        <div id="loginSection">
+          <form id="loginForm" class="inline-form">
+            <input type="text" id="loginUsername" placeholder="Username" autocomplete="username" required>
+            <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" required>
+            <button type="submit" class="btn-primary">Login</button>
+          </form>
+          <p class="hint">Write operations are disabled until you login.</p>
+        </div>
+
+        <div id="sessionSection" class="hidden">
+          <p class="hint">Logged in as <strong id="currentUser">-</strong></p>
+          <div class="button-row">
+            <button id="logoutBtn" class="btn-secondary" type="button">Logout</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="stats">
         <div class="stat-card">
-          <div class="stat-number" id="totalBooks">0</div>
+          <div id="totalBooks" class="stat-value">0</div>
           <div class="stat-label">Total Books</div>
         </div>
         <div class="stat-card">
-          <div class="stat-number" id="avgRating">0</div>
+          <div id="avgRating" class="stat-value">0.0</div>
           <div class="stat-label">Average Rating</div>
         </div>
         <div class="stat-card">
-          <div class="stat-number" id="totalPages">0</div>
+          <div id="totalPages" class="stat-value">0</div>
           <div class="stat-label">Total Pages</div>
         </div>
-      </div>
+      </section>
 
-      <!-- Add Book Section -->
-      <div class="section">
-        <h2>➕ Add New Book</h2>
+      <section class="panel" id="writePanel">
+        <div class="panel-header">
+          <h2>Add New Book</h2>
+          <span id="writeLockLabel" class="lock-label">Read-only mode</span>
+        </div>
+
         <div class="form-grid">
           <div class="form-group">
             <label for="title">Title *</label>
-            <input type="text" id="title" placeholder="Book title" required>
+            <input type="text" id="title" maxlength="200" required>
           </div>
           <div class="form-group">
             <label for="author">Author *</label>
-            <input type="text" id="author" placeholder="Author name" required>
+            <input type="text" id="author" maxlength="200" required>
           </div>
           <div class="form-group">
             <label for="genre">Genre</label>
-            <input type="text" id="genre" placeholder="e.g., Fiction, Fantasy">
+            <input type="text" id="genre" maxlength="100">
+          </div>
+          <div class="form-group">
+            <label for="isbn">ISBN</label>
+            <input type="text" id="isbn" maxlength="40">
           </div>
           <div class="form-group">
             <label for="pages">Pages</label>
-            <input type="number" id="pages" placeholder="Number of pages" min="1">
+            <input type="number" id="pages" min="1" max="10000">
           </div>
           <div class="form-group">
             <label for="published_year">Published Year</label>
-            <input type="number" id="published_year" placeholder="Year" min="1000">
+            <input type="number" id="published_year" min="1000" max="2099">
           </div>
           <div class="form-group">
             <label for="rating">Rating (0-10)</label>
-            <input type="number" id="rating" placeholder="Rating" min="0" max="10" step="0.1">
+            <input type="number" id="rating" min="0" max="10" step="0.1">
+          </div>
+          <div class="form-group full">
+            <label for="description">Description</label>
+            <textarea id="description" maxlength="1500"></textarea>
           </div>
         </div>
-        <div class="form-group">
-          <label for="description">Description</label>
-          <textarea id="description" placeholder="Book description"></textarea>
-        </div>
-        <div class="button-group">
-          <button class="btn-primary" onclick="addBook()">Add Book</button>
-          <button class="btn-secondary" onclick="clearForm()">Clear</button>
-        </div>
-      </div>
 
-      <!-- Books List Section -->
-      <div class="section">
-        <h2>📖 Your Books</h2>
-        <div class="loading" id="loading">
-          <div class="spinner"></div>
-          <p>Loading books...</p>
+        <div class="button-row">
+          <button id="addBookBtn" type="button" class="btn-primary">Add Book</button>
+          <button id="clearFormBtn" type="button" class="btn-secondary">Clear</button>
         </div>
-        <div id="booksContainer">
-          <div class="empty-state">
-            <div class="empty-state-icon">📚</div>
-            <p>No books yet. Add your first book above!</p>
-          </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Library Catalog</h2>
+          <button id="refreshBtn" type="button" class="btn-secondary btn-small">Refresh</button>
         </div>
-      </div>
-    </div>
+
+        <div id="loading" class="loading hidden">Loading books...</div>
+        <div id="booksContainer" class="table-wrap">
+          <div class="empty">No books found.</div>
+        </div>
+      </section>
+    </main>
   </div>
 
-  <!-- Edit Modal -->
-  <div id="editModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Edit Book</h2>
-        <button class="close-btn" onclick="closeEditModal()">&times;</button>
+  <div id="editModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3>Edit Book</h3>
+        <button id="closeEditBtn" type="button" class="btn-secondary btn-small">Close</button>
       </div>
+
       <div class="form-grid">
         <div class="form-group">
-          <label for="editTitle">Title</label>
-          <input type="text" id="editTitle">
+          <label for="editTitle">Title *</label>
+          <input type="text" id="editTitle" maxlength="200" required>
         </div>
         <div class="form-group">
-          <label for="editAuthor">Author</label>
-          <input type="text" id="editAuthor">
+          <label for="editAuthor">Author *</label>
+          <input type="text" id="editAuthor" maxlength="200" required>
         </div>
         <div class="form-group">
           <label for="editGenre">Genre</label>
-          <input type="text" id="editGenre">
+          <input type="text" id="editGenre" maxlength="100">
+        </div>
+        <div class="form-group">
+          <label for="editIsbn">ISBN</label>
+          <input type="text" id="editIsbn" maxlength="40">
         </div>
         <div class="form-group">
           <label for="editPages">Pages</label>
-          <input type="number" id="editPages" min="1">
+          <input type="number" id="editPages" min="1" max="10000">
         </div>
         <div class="form-group">
           <label for="editPublishedYear">Published Year</label>
-          <input type="number" id="editPublishedYear" min="1000">
+          <input type="number" id="editPublishedYear" min="1000" max="2099">
         </div>
         <div class="form-group">
           <label for="editRating">Rating (0-10)</label>
           <input type="number" id="editRating" min="0" max="10" step="0.1">
         </div>
+        <div class="form-group full">
+          <label for="editDescription">Description</label>
+          <textarea id="editDescription" maxlength="1500"></textarea>
+        </div>
       </div>
-      <div class="form-group">
-        <label for="editDescription">Description</label>
-        <textarea id="editDescription"></textarea>
-      </div>
-      <div class="button-group">
-        <button class="btn-primary" onclick="saveEdit()">Save Changes</button>
-        <button class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+
+      <div class="button-row">
+        <button id="saveEditBtn" type="button" class="btn-primary">Save Changes</button>
+        <button id="cancelEditBtn" type="button" class="btn-secondary">Cancel</button>
       </div>
     </div>
   </div>
 
   <script>
-    let currentEditId = null;
     const API_BASE = '/api/books';
+    const AUTH_BASE = '/api/auth';
 
-    // Show alert message
-    function showAlert(message, type = 'success') {
-      const alertBox = document.getElementById('alertBox');
-      alertBox.className = `alert alert-${type} show`;
-      alertBox.textContent = message;
-      setTimeout(() => {
-        alertBox.classList.remove('show');
-      }, 4000);
+    let currentEditId = null;
+    let authUser = null;
+
+    const alertBox = document.getElementById('alertBox');
+    const authBadge = document.getElementById('authBadge');
+    const loginSection = document.getElementById('loginSection');
+    const sessionSection = document.getElementById('sessionSection');
+    const currentUserLabel = document.getElementById('currentUser');
+    const writePanel = document.getElementById('writePanel');
+    const writeLockLabel = document.getElementById('writeLockLabel');
+    const loadingBox = document.getElementById('loading');
+    const booksContainer = document.getElementById('booksContainer');
+    const editModal = document.getElementById('editModal');
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
     }
 
-    // Load all books
-    async function loadBooks() {
-      try {
-        document.getElementById('loading').classList.add('show');
-        const response = await fetch(API_BASE);
-        const result = await response.json();
+    function showAlert(message, type = 'success') {
+      alertBox.className = `alert alert-${type} show`;
+      alertBox.textContent = message;
+      window.clearTimeout(showAlert.timeoutId);
+      showAlert.timeoutId = window.setTimeout(() => {
+        alertBox.classList.remove('show');
+      }, 3500);
+    }
 
+    function setLoading(isLoading) {
+      loadingBox.classList.toggle('hidden', !isLoading);
+    }
+
+    function setWriteLocked(locked) {
+      const fields = writePanel.querySelectorAll('input, textarea, button');
+      fields.forEach((field) => {
+        field.disabled = locked;
+      });
+
+      writeLockLabel.textContent = locked ? 'Read-only mode' : 'Write access enabled';
+      if (locked) {
+        closeEditModal();
+      }
+    }
+
+    function updateAuthUI() {
+      const authenticated = Boolean(authUser);
+
+      authBadge.textContent = authenticated ? 'Authenticated' : 'Not authenticated';
+      authBadge.className = authenticated ? 'badge badge-on' : 'badge badge-off';
+
+      loginSection.classList.toggle('hidden', authenticated);
+      sessionSection.classList.toggle('hidden', !authenticated);
+      currentUserLabel.textContent = authenticated ? authUser.username : '-';
+
+      setWriteLocked(!authenticated);
+    }
+
+    async function apiRequest(url, options = {}) {
+      const init = {
+        credentials: 'same-origin',
+        ...options
+      };
+
+      if (init.body && !init.headers) {
+        init.headers = { 'Content-Type': 'application/json' };
+      }
+
+      const response = await fetch(url, init);
+      let result = null;
+      try {
+        result = await response.json();
+      } catch {
+        result = {
+          success: false,
+          message: 'Unexpected response from server'
+        };
+      }
+
+      return { response, result };
+    }
+
+    function handleUnauthorized() {
+      authUser = null;
+      updateAuthUI();
+      showAlert('Session expired or unauthorized. Please login again.', 'error');
+    }
+
+    function ensureAuth() {
+      if (authUser) {
+        return true;
+      }
+
+      showAlert('Please login to perform write operations.', 'info');
+      return false;
+    }
+
+    async function checkAuth() {
+      try {
+        const { result } = await apiRequest(`${AUTH_BASE}/me`);
+        if (result.success && result.data && result.data.authenticated) {
+          authUser = result.data.user;
+        } else {
+          authUser = null;
+        }
+      } catch {
+        authUser = null;
+      }
+
+      updateAuthUI();
+    }
+
+    async function login(event) {
+      event.preventDefault();
+
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value;
+
+      if (!username || !password) {
+        showAlert('Username and password are required.', 'error');
+        return;
+      }
+
+      const { response, result } = await apiRequest(`${AUTH_BASE}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      if (!response.ok || !result.success) {
+        showAlert(result.message || 'Login failed', 'error');
+        return;
+      }
+
+      authUser = result.data.user;
+      updateAuthUI();
+      document.getElementById('loginForm').reset();
+      showAlert('Login successful.', 'success');
+      loadBooks();
+    }
+
+    async function logout() {
+      await apiRequest(`${AUTH_BASE}/logout`, { method: 'POST' });
+      authUser = null;
+      updateAuthUI();
+      showAlert('Logged out.', 'info');
+      loadBooks();
+    }
+
+    function updateStats(books) {
+      const totalBooks = books.length;
+      const totalPages = books.reduce((sum, book) => sum + (Number(book.pages) || 0), 0);
+      const totalRating = books.reduce((sum, book) => sum + (Number(book.rating) || 0), 0);
+      const averageRating = totalBooks > 0 ? (totalRating / totalBooks).toFixed(1) : '0.0';
+
+      document.getElementById('totalBooks').textContent = totalBooks;
+      document.getElementById('totalPages').textContent = totalPages;
+      document.getElementById('avgRating').textContent = averageRating;
+    }
+
+    function displayBooks(books) {
+      if (!Array.isArray(books) || books.length === 0) {
+        booksContainer.innerHTML = '<div class="empty">No books found. Add one after login.</div>';
+        return;
+      }
+
+      const canWrite = Boolean(authUser);
+      let html = '<table><thead><tr>';
+      html += '<th>Title</th><th>Author</th><th>Genre</th><th>ISBN</th><th>Rating</th><th>Pages</th><th>Year</th><th>Actions</th>';
+      html += '</tr></thead><tbody>';
+
+      for (const book of books) {
+        html += '<tr>';
+        html += `<td><strong>${escapeHtml(book.title || '-')}</strong></td>`;
+        html += `<td>${escapeHtml(book.author || '-')}</td>`;
+        html += `<td>${escapeHtml(book.genre || '-')}</td>`;
+        html += `<td>${escapeHtml(book.isbn || '-')}</td>`;
+        html += `<td><span class="rating">${escapeHtml(book.rating ?? 0)}</span></td>`;
+        html += `<td>${escapeHtml(book.pages ?? '-')}</td>`;
+        html += `<td>${escapeHtml(book.published_year ?? '-')}</td>`;
+        html += '<td>';
+
+        if (canWrite) {
+          html += '<div class="actions">';
+          html += `<button class="btn-small btn-secondary" type="button" onclick="openEditModal('${book._id}')">Edit</button>`;
+          html += `<button class="btn-small btn-danger" type="button" onclick="deleteBook('${book._id}')">Delete</button>`;
+          html += '</div>';
+        } else {
+          html += '<span class="muted">Read-only</span>';
+        }
+
+        html += '</td></tr>';
+      }
+
+      html += '</tbody></table>';
+      booksContainer.innerHTML = html;
+    }
+
+    async function loadBooks() {
+      setLoading(true);
+
+      try {
+        const { result } = await apiRequest(API_BASE);
         if (!result.success) {
-          showAlert('Error loading books', 'error');
+          showAlert(result.message || 'Failed to load books', 'error');
           return;
         }
 
-        displayBooks(result.data);
-        updateStats(result.data);
-      } catch (error) {
-        console.error('Error:', error);
+        const books = Array.isArray(result.data) ? result.data : [];
+        displayBooks(books);
+        updateStats(books);
+      } catch {
         showAlert('Failed to load books', 'error');
       } finally {
-        document.getElementById('loading').classList.remove('show');
+        setLoading(false);
       }
     }
 
-    // Display books in table
-    function displayBooks(books) {
-      const container = document.getElementById('booksContainer');
-
-      if (books.length === 0) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-state-icon">📚</div>
-            <p>No books yet. Add your first book above!</p>
-          </div>
-        `;
-        return;
-      }
-
-      let html = '<div class="table-container"><table>';
-      html += '<tr>';
-      html += '<th>Title</th>';
-      html += '<th>Author</th>';
-      html += '<th>Genre</th>';
-      html += '<th>Rating</th>';
-      html += '<th>Pages</th>';
-      html += '<th>Year</th>';
-      html += '<th>Actions</th>';
-      html += '</tr>';
-
-      books.forEach(book => {
-        html += '<tr>';
-        html += `<td><strong>${book.title}</strong></td>`;
-        html += `<td>${book.author || '-'}</td>`;
-        html += `<td>${book.genre || '-'}</td>`;
-        html += `<td><span class="rating">${book.rating || 0}</span></td>`;
-        html += `<td>${book.pages || '-'}</td>`;
-        html += `<td>${book.published_year || '-'}</td>`;
-        html += '<td>';
-        html += `<div class="actions">`;
-        html += `<button class="btn-small btn-secondary" onclick="editBook('${book._id}')">Edit</button>`;
-        html += `<button class="btn-small btn-danger" onclick="deleteBook('${book._id}')">Delete</button>`;
-        html += `</div>`;
-        html += '</td>';
-        html += '</tr>';
-      });
-
-      html += '</table></div>';
-      container.innerHTML = html;
-    }
-
-    // Update statistics
-    function updateStats(books) {
-      const total = books.length;
-      const avgRating = total > 0
-        ? (books.reduce((sum, book) => sum + (book.rating || 0), 0) / total).toFixed(1)
-        : 0;
-      const totalPages = books.reduce((sum, book) => sum + (book.pages || 0), 0);
-
-      document.getElementById('totalBooks').textContent = total;
-      document.getElementById('avgRating').textContent = avgRating;
-      document.getElementById('totalPages').textContent = totalPages;
-    }
-
-    // Add new book
-    async function addBook() {
-      const title = document.getElementById('title').value.trim();
-      const author = document.getElementById('author').value.trim();
-      const genre = document.getElementById('genre').value.trim();
-      const pages = document.getElementById('pages').value;
-      const published_year = document.getElementById('published_year').value;
-      const rating = document.getElementById('rating').value;
-      const description = document.getElementById('description').value.trim();
-
-      if (!title || !author) {
-        showAlert('Title and Author are required!', 'error');
-        return;
-      }
-
-      try {
-        const response = await fetch(API_BASE, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title,
-            author,
-            genre: genre || undefined,
-            pages: pages ? parseInt(pages) : undefined,
-            published_year: published_year ? parseInt(published_year) : undefined,
-            rating: rating ? parseFloat(rating) : undefined,
-            description: description || undefined
-          })
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-          showAlert('Book added successfully!', 'success');
-          clearForm();
-          loadBooks();
-        } else {
-          showAlert(result.message || 'Error adding book', 'error');
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        showAlert('Failed to add book', 'error');
-      }
-    }
-
-    // Edit book
-    async function editBook(id) {
-      try {
-        const response = await fetch(`${API_BASE}/${id}`);
-        const result = await response.json();
-
-        if (result.success) {
-          const book = result.data;
-          currentEditId = id;
-
-          document.getElementById('editTitle').value = book.title || '';
-          document.getElementById('editAuthor').value = book.author || '';
-          document.getElementById('editGenre').value = book.genre || '';
-          document.getElementById('editPages').value = book.pages || '';
-          document.getElementById('editPublishedYear').value = book.published_year || '';
-          document.getElementById('editRating').value = book.rating || '';
-          document.getElementById('editDescription').value = book.description || '';
-
-          document.getElementById('editModal').classList.add('show');
-        } else {
-          showAlert('Error loading book details', 'error');
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        showAlert('Failed to load book', 'error');
-      }
-    }
-
-    // Save edit
-    async function saveEdit() {
-      if (!currentEditId) return;
-
-      const data = {
-        title: document.getElementById('editTitle').value.trim(),
-        author: document.getElementById('editAuthor').value.trim(),
-        genre: document.getElementById('editGenre').value.trim(),
-        pages: document.getElementById('editPages').value ? parseInt(document.getElementById('editPages').value) : undefined,
-        published_year: document.getElementById('editPublishedYear').value ? parseInt(document.getElementById('editPublishedYear').value) : undefined,
-        rating: document.getElementById('editRating').value ? parseFloat(document.getElementById('editRating').value) : undefined,
-        description: document.getElementById('editDescription').value.trim()
-      };
-
-      try {
-        const response = await fetch(`${API_BASE}/${currentEditId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-          showAlert('Book updated successfully!', 'success');
-          closeEditModal();
-          loadBooks();
-        } else {
-          showAlert(result.message || 'Error updating book', 'error');
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        showAlert('Failed to update book', 'error');
-      }
-    }
-
-    // Delete book
-    async function deleteBook(id) {
-      if (!confirm('Are you sure you want to delete this book?')) return;
-
-      try {
-        const response = await fetch(`${API_BASE}/${id}`, {
-          method: 'DELETE'
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-          showAlert('Book deleted successfully!', 'success');
-          loadBooks();
-        } else {
-          showAlert(result.message || 'Error deleting book', 'error');
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        showAlert('Failed to delete book', 'error');
-      }
-    }
-
-    // Clear form
-    function clearForm() {
+    function clearCreateForm() {
       document.getElementById('title').value = '';
       document.getElementById('author').value = '';
       document.getElementById('genre').value = '';
+      document.getElementById('isbn').value = '';
       document.getElementById('pages').value = '';
       document.getElementById('published_year').value = '';
       document.getElementById('rating').value = '';
       document.getElementById('description').value = '';
-      document.getElementById('title').focus();
     }
 
-    // Close edit modal
+    function collectCreatePayload() {
+      return {
+        title: document.getElementById('title').value.trim(),
+        author: document.getElementById('author').value.trim(),
+        genre: document.getElementById('genre').value.trim(),
+        isbn: document.getElementById('isbn').value.trim(),
+        pages: document.getElementById('pages').value ? Number.parseInt(document.getElementById('pages').value, 10) : null,
+        published_year: document.getElementById('published_year').value ? Number.parseInt(document.getElementById('published_year').value, 10) : null,
+        rating: document.getElementById('rating').value ? Number.parseFloat(document.getElementById('rating').value) : null,
+        description: document.getElementById('description').value.trim()
+      };
+    }
+
+    async function addBook() {
+      if (!ensureAuth()) {
+        return;
+      }
+
+      const payload = collectCreatePayload();
+      if (!payload.title || !payload.author) {
+        showAlert('Title and author are required.', 'error');
+        return;
+      }
+
+      const { response, result } = await apiRequest(API_BASE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+
+      if (!response.ok || !result.success) {
+        showAlert(result.message || 'Failed to create book', 'error');
+        return;
+      }
+
+      clearCreateForm();
+      showAlert('Book created successfully.', 'success');
+      loadBooks();
+    }
+
+    async function openEditModal(id) {
+      if (!ensureAuth()) {
+        return;
+      }
+
+      const { response, result } = await apiRequest(`${API_BASE}/${id}`);
+
+      if (response.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+
+      if (!response.ok || !result.success) {
+        showAlert(result.message || 'Failed to load book details', 'error');
+        return;
+      }
+
+      const book = result.data || {};
+      currentEditId = id;
+
+      document.getElementById('editTitle').value = book.title || '';
+      document.getElementById('editAuthor').value = book.author || '';
+      document.getElementById('editGenre').value = book.genre || '';
+      document.getElementById('editIsbn').value = book.isbn || '';
+      document.getElementById('editPages').value = book.pages || '';
+      document.getElementById('editPublishedYear').value = book.published_year || '';
+      document.getElementById('editRating').value = book.rating || '';
+      document.getElementById('editDescription').value = book.description || '';
+
+      editModal.classList.remove('hidden');
+    }
+
     function closeEditModal() {
-      document.getElementById('editModal').classList.remove('show');
       currentEditId = null;
+      editModal.classList.add('hidden');
     }
 
-    // Close modal on outside click
-    document.getElementById('editModal').addEventListener('click', function(event) {
-      if (event.target === this) {
+    function collectEditPayload() {
+      return {
+        title: document.getElementById('editTitle').value.trim(),
+        author: document.getElementById('editAuthor').value.trim(),
+        genre: document.getElementById('editGenre').value.trim(),
+        isbn: document.getElementById('editIsbn').value.trim(),
+        pages: document.getElementById('editPages').value ? Number.parseInt(document.getElementById('editPages').value, 10) : null,
+        published_year: document.getElementById('editPublishedYear').value ? Number.parseInt(document.getElementById('editPublishedYear').value, 10) : null,
+        rating: document.getElementById('editRating').value ? Number.parseFloat(document.getElementById('editRating').value) : null,
+        description: document.getElementById('editDescription').value.trim()
+      };
+    }
+
+    async function saveEdit() {
+      if (!ensureAuth() || !currentEditId) {
+        return;
+      }
+
+      const payload = collectEditPayload();
+      if (!payload.title || !payload.author) {
+        showAlert('Title and author are required.', 'error');
+        return;
+      }
+
+      const { response, result } = await apiRequest(`${API_BASE}/${currentEditId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+
+      if (!response.ok || !result.success) {
+        showAlert(result.message || 'Failed to update book', 'error');
+        return;
+      }
+
+      closeEditModal();
+      showAlert('Book updated successfully.', 'success');
+      loadBooks();
+    }
+
+    async function deleteBook(id) {
+      if (!ensureAuth()) {
+        return;
+      }
+
+      if (!window.confirm('Delete this book?')) {
+        return;
+      }
+
+      const { response, result } = await apiRequest(`${API_BASE}/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (response.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+
+      if (!response.ok || !result.success) {
+        showAlert(result.message || 'Failed to delete book', 'error');
+        return;
+      }
+
+      showAlert('Book deleted successfully.', 'success');
+      loadBooks();
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', login);
+    document.getElementById('logoutBtn').addEventListener('click', logout);
+    document.getElementById('addBookBtn').addEventListener('click', addBook);
+    document.getElementById('clearFormBtn').addEventListener('click', clearCreateForm);
+    document.getElementById('refreshBtn').addEventListener('click', loadBooks);
+    document.getElementById('saveEditBtn').addEventListener('click', saveEdit);
+    document.getElementById('closeEditBtn').addEventListener('click', closeEditModal);
+    document.getElementById('cancelEditBtn').addEventListener('click', closeEditModal);
+
+    editModal.addEventListener('click', (event) => {
+      if (event.target === editModal) {
         closeEditModal();
       }
     });
 
-    // Load books on page load
-    window.addEventListener('load', loadBooks);
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        closeEditModal();
+      }
+    });
+
+    window.openEditModal = openEditModal;
+    window.deleteBook = deleteBook;
+
+    window.addEventListener('load', async () => {
+      await checkAuth();
+      await loadBooks();
+    });
   </script>
 </body>
 </html>

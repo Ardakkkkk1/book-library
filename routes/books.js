@@ -1,75 +1,299 @@
 const express = require('express');
 const router = express.Router();
-const { getDB, isValidObjectId, getObjectId, COLLECTION_NAME } = require('../database/connection');
+const {
+  getDB,
+  isValidObjectId,
+  getObjectId,
+  BOOKS_COLLECTION_NAME
+} = require('../database/connection');
+const { requireAuth } = require('../middleware/auth');
 
-// GET /api/books - Get all books (with filtering, sorting, projection)
-router.get('/', async (req, res) => {
+const ALLOWED_WRITE_FIELDS = [
+  'title',
+  'author',
+  'description',
+  'isbn',
+  'genre',
+  'pages',
+  'published_year',
+  'rating'
+];
+
+const ALLOWED_SORT_FIELDS = new Set([
+  '_id',
+  'title',
+  'author',
+  'genre',
+  'pages',
+  'published_year',
+  'rating',
+  'created_at',
+  'updated_at'
+]);
+
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function parseIntegerField(value, fieldName, min, max, errors) {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  const parsed = Number.parseInt(value, 10);
+  if (Number.isNaN(parsed) || parsed < min || parsed > max) {
+    errors.push(`${fieldName} must be between ${min} and ${max}`);
+    return null;
+  }
+
+  return parsed;
+}
+
+function parseFloatField(value, fieldName, min, max, errors) {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  const parsed = Number.parseFloat(value);
+  if (Number.isNaN(parsed) || parsed < min || parsed > max) {
+    errors.push(`${fieldName} must be between ${min} and ${max}`);
+    return null;
+  }
+
+  return parsed;
+}
+
+function normalizeString(value, fieldName, { required = false, maxLength = 400 } = {}, errors) {
+  if (value === undefined) {
+    if (required) {
+      errors.push(`${fieldName} is required`);
+    }
+    return undefined;
+  }
+
+  if (value === null) {
+    if (required) {
+      errors.push(`${fieldName} is required`);
+      return undefined;
+    }
+    return '';
+  }
+
+  if (typeof value !== 'string') {
+    errors.push(`${fieldName} must be a string`);
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  if (required && trimmed.length === 0) {
+    errors.push(`${fieldName} cannot be empty`);
+    return undefined;
+  }
+
+  if (trimmed.length > maxLength) {
+    errors.push(`${fieldName} is too long (max ${maxLength} chars)`);
+    return undefined;
+  }
+
+  return trimmed;
+}
+
+function validateBookPayload(payload, { partial = false } = {}) {
+  const errors = [];
+  const data = {};
+
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return {
+      errors: ['Request body must be a JSON object'],
+      data
+    };
+  }
+
+  const payloadKeys = Object.keys(payload);
+  if (payloadKeys.length === 0) {
+    return {
+      errors: ['Request body cannot be empty'],
+      data
+    };
+  }
+
+  for (const key of payloadKeys) {
+    if (!ALLOWED_WRITE_FIELDS.includes(key)) {
+      errors.push(`Field '${key}' is not allowed`);
+    }
+  }
+
+  const currentYear = new Date().getFullYear();
+
+  if (!partial || Object.prototype.hasOwnProperty.call(payload, 'title')) {
+    const title = normalizeString(payload.title, 'title', { required: !partial, maxLength: 200 }, errors);
+    if (title !== undefined) {
+      data.title = title;
+    }
+  }
+
+  if (!partial || Object.prototype.hasOwnProperty.call(payload, 'author')) {
+    const author = normalizeString(payload.author, 'author', { required: !partial, maxLength: 200 }, errors);
+    if (author !== undefined) {
+      data.author = author;
+    }
+  }
+
+  if (!partial || Object.prototype.hasOwnProperty.call(payload, 'description')) {
+    const description = normalizeString(payload.description, 'description', { maxLength: 1500 }, errors);
+    if (description !== undefined) {
+      data.description = description;
+    }
+  }
+
+  if (!partial || Object.prototype.hasOwnProperty.call(payload, 'isbn')) {
+    const isbn = normalizeString(payload.isbn, 'isbn', { maxLength: 40 }, errors);
+    if (isbn !== undefined) {
+      data.isbn = isbn;
+    }
+  }
+
+  if (!partial || Object.prototype.hasOwnProperty.call(payload, 'genre')) {
+    const genre = normalizeString(payload.genre, 'genre', { maxLength: 100 }, errors);
+    if (genre !== undefined) {
+      data.genre = genre;
+    }
+  }
+
+  if (!partial || Object.prototype.hasOwnProperty.call(payload, 'pages')) {
+    data.pages = parseIntegerField(payload.pages, 'pages', 1, 10000, errors);
+  }
+
+  if (!partial || Object.prototype.hasOwnProperty.call(payload, 'published_year')) {
+    data.published_year = parseIntegerField(payload.published_year, 'published_year', 1000, currentYear, errors);
+  }
+
+  if (!partial || Object.prototype.hasOwnProperty.call(payload, 'rating')) {
+    data.rating = parseFloatField(payload.rating, 'rating', 0, 10, errors);
+  }
+
+  if (!partial) {
+    if (data.description === undefined) {
+      data.description = '';
+    }
+    if (data.isbn === undefined) {
+      data.isbn = '';
+    }
+    if (data.genre === undefined) {
+      data.genre = '';
+    }
+    if (data.pages === undefined) {
+      data.pages = null;
+    }
+    if (data.published_year === undefined) {
+      data.published_year = null;
+    }
+    if (data.rating === undefined || data.rating === null) {
+      data.rating = 0;
+    }
+  }
+
+  if (partial) {
+    const hasUpdatableField = ALLOWED_WRITE_FIELDS.some((field) => Object.prototype.hasOwnProperty.call(payload, field));
+    if (!hasUpdatableField) {
+      errors.push('No valid fields provided for update');
+    }
+  }
+
+  return { errors, data };
+}
+
+// GET /api/books - Get all books (supports filtering, sorting, projection)
+router.get('/', async (req, res, next) => {
   try {
     const db = getDB();
-    const collection = db.collection(COLLECTION_NAME);
+    const collection = db.collection(BOOKS_COLLECTION_NAME);
 
-    // Build filter
     const filter = {};
-    
+
     if (req.query.author) {
-      filter.author = { $regex: req.query.author, $options: 'i' };
+      const safeValue = escapeRegex(String(req.query.author).trim());
+      filter.author = { $regex: safeValue, $options: 'i' };
     }
-    
+
     if (req.query.genre) {
-      filter.genre = { $regex: req.query.genre, $options: 'i' };
+      const safeValue = escapeRegex(String(req.query.genre).trim());
+      filter.genre = { $regex: safeValue, $options: 'i' };
     }
-    
-    if (req.query.minRating) {
-      filter.rating = { $gte: parseFloat(req.query.minRating) };
-    }
-    
+
     if (req.query.title) {
-      filter.title = { $regex: req.query.title, $options: 'i' };
+      const safeValue = escapeRegex(String(req.query.title).trim());
+      filter.title = { $regex: safeValue, $options: 'i' };
     }
 
-    // Build sort
-    const sort = {};
+    if (req.query.minRating !== undefined) {
+      const minRating = Number.parseFloat(req.query.minRating);
+      if (Number.isNaN(minRating) || minRating < 0 || minRating > 10) {
+        return res.status(400).json({
+          success: false,
+          message: 'minRating must be a number between 0 and 10'
+        });
+      }
+      filter.rating = { $gte: minRating };
+    }
+
+    const sort = { created_at: -1 };
     if (req.query.sortBy) {
-      const sortField = req.query.sortBy;
-      const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1;
+      const sortField = String(req.query.sortBy).trim();
+      if (!ALLOWED_SORT_FIELDS.has(sortField)) {
+        return res.status(400).json({
+          success: false,
+          message: `sortBy must be one of: ${Array.from(ALLOWED_SORT_FIELDS).join(', ')}`
+        });
+      }
+
+      const sortOrder = String(req.query.sortOrder || 'asc').toLowerCase() === 'desc' ? -1 : 1;
       sort[sortField] = sortOrder;
-    } else {
-      sort.created_at = -1;
     }
 
-    // Build projection
-    const projection = {};
+    let projection = undefined;
     if (req.query.fields) {
-      const fields = req.query.fields.split(',');
-      fields.forEach(field => {
-        projection[field.trim()] = 1;
-      });
+      const requestedFields = String(req.query.fields)
+        .split(',')
+        .map((field) => field.trim())
+        .filter((field) => field.length > 0);
+
+      const validFields = requestedFields.filter(
+        (field) => field === '_id' || ALLOWED_WRITE_FIELDS.includes(field) || field === 'created_at' || field === 'updated_at'
+      );
+
+      if (validFields.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'No valid fields requested'
+        });
+      }
+
+      projection = {};
+      for (const field of validFields) {
+        projection[field] = 1;
+      }
     }
 
-    // Execute query
-    const books = await collection
-      .find(filter)
-      .sort(sort)
-      .project(projection.id ? projection : {})
-      .toArray();
+    const cursor = collection.find(filter).sort(sort);
+    if (projection) {
+      cursor.project(projection);
+    }
 
-    res.status(200).json({
+    const books = await cursor.toArray();
+
+    return res.status(200).json({
       success: true,
       count: books.length,
       data: books
     });
   } catch (error) {
-    console.error('GET /api/books error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching books',
-      error: error.message
-    });
+    return next(error);
   }
 });
 
-// GET /api/books/:id - Get a single book by ID
-router.get('/:id', async (req, res) => {
+// GET /api/books/:id - Get one book by ID
+router.get('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -81,7 +305,7 @@ router.get('/:id', async (req, res) => {
     }
 
     const db = getDB();
-    const collection = db.collection(COLLECTION_NAME);
+    const collection = db.collection(BOOKS_COLLECTION_NAME);
     const objectId = getObjectId(id);
 
     const book = await collection.findOne({ _id: objectId });
@@ -93,80 +317,39 @@ router.get('/:id', async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: book
     });
   } catch (error) {
-    console.error('GET /api/books/:id error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching book',
-      error: error.message
-    });
+    return next(error);
   }
 });
 
-// POST /api/books - Create a new book
-router.post('/', async (req, res) => {
+// POST /api/books - Create a new book (protected)
+router.post('/', requireAuth, async (req, res, next) => {
   try {
-    const { title, author, description, isbn, genre, pages, published_year, rating } = req.body;
-
-    // Validation
-    if (!title || !author) {
+    const { data, errors } = validateBookPayload(req.body, { partial: false });
+    if (errors.length > 0) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required fields: title and author'
-      });
-    }
-
-    if (title.trim() === '' || author.trim() === '') {
-      return res.status(400).json({
-        success: false,
-        message: 'Title and author cannot be empty'
-      });
-    }
-
-    if (rating && (isNaN(rating) || rating < 0 || rating > 10)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Rating must be a number between 0 and 10'
-      });
-    }
-
-    if (pages && (isNaN(pages) || pages < 1)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Pages must be a positive number'
-      });
-    }
-
-    if (published_year && (isNaN(published_year) || published_year < 1000 || published_year > new Date().getFullYear())) {
-      return res.status(400).json({
-        success: false,
-        message: `Published year must be between 1000 and ${new Date().getFullYear()}`
+        message: errors[0]
       });
     }
 
     const db = getDB();
-    const collection = db.collection(COLLECTION_NAME);
+    const collection = db.collection(BOOKS_COLLECTION_NAME);
 
+    const now = new Date();
     const newBook = {
-      title: title.trim(),
-      author: author.trim(),
-      description: description?.trim() || '',
-      isbn: isbn?.trim() || '',
-      genre: genre?.trim() || '',
-      pages: pages ? parseInt(pages) : null,
-      published_year: published_year ? parseInt(published_year) : null,
-      rating: rating ? parseFloat(rating) : 0,
-      created_at: new Date(),
-      updated_at: new Date()
+      ...data,
+      created_at: now,
+      updated_at: now
     };
 
     const result = await collection.insertOne(newBook);
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: 'Book created successfully',
       data: {
@@ -175,20 +358,14 @@ router.post('/', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('POST /api/books error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error creating book',
-      error: error.message
-    });
+    return next(error);
   }
 });
 
-// PUT /api/books/:id - Update a book
-router.put('/:id', async (req, res) => {
+// PUT /api/books/:id - Update a book (protected)
+router.put('/:id', requireAuth, async (req, res, next) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
 
     if (!isValidObjectId(id)) {
       return res.status(400).json({
@@ -197,86 +374,46 @@ router.put('/:id', async (req, res) => {
       });
     }
 
-    if (Object.keys(updateData).length === 0) {
+    const { data, errors } = validateBookPayload(req.body, { partial: true });
+    if (errors.length > 0) {
       return res.status(400).json({
         success: false,
-        message: 'No update data provided'
+        message: errors[0]
       });
     }
 
-    // Validate fields if provided
-    if (updateData.title !== undefined && updateData.title.trim() === '') {
-      return res.status(400).json({
-        success: false,
-        message: 'Title cannot be empty'
-      });
-    }
-
-    if (updateData.author !== undefined && updateData.author.trim() === '') {
-      return res.status(400).json({
-        success: false,
-        message: 'Author cannot be empty'
-      });
-    }
-
-    if (updateData.rating !== undefined && (isNaN(updateData.rating) || updateData.rating < 0 || updateData.rating > 10)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Rating must be a number between 0 and 10'
-      });
-    }
-
-    if (updateData.pages !== undefined && (isNaN(updateData.pages) || updateData.pages < 1)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Pages must be a positive number'
-      });
-    }
+    data.updated_at = new Date();
 
     const db = getDB();
-    const collection = db.collection(COLLECTION_NAME);
+    const collection = db.collection(BOOKS_COLLECTION_NAME);
     const objectId = getObjectId(id);
-
-    const dataToUpdate = {};
-    Object.keys(updateData).forEach(key => {
-      if (typeof updateData[key] === 'string') {
-        dataToUpdate[key] = updateData[key].trim();
-      } else {
-        dataToUpdate[key] = updateData[key];
-      }
-    });
-    dataToUpdate.updated_at = new Date();
 
     const result = await collection.findOneAndUpdate(
       { _id: objectId },
-      { $set: dataToUpdate },
+      { $set: data },
       { returnDocument: 'after' }
     );
 
-    if (!result.value) {
+    const updatedBook = result && result.value !== undefined ? result.value : result;
+    if (!updatedBook) {
       return res.status(404).json({
         success: false,
         message: 'Book not found'
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: 'Book updated successfully',
-      data: result.value
+      data: updatedBook
     });
   } catch (error) {
-    console.error('PUT /api/books/:id error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error updating book',
-      error: error.message
-    });
+    return next(error);
   }
 });
 
-// DELETE /api/books/:id - Delete a book
-router.delete('/:id', async (req, res) => {
+// DELETE /api/books/:id - Delete a book (protected)
+router.delete('/:id', requireAuth, async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -288,7 +425,7 @@ router.delete('/:id', async (req, res) => {
     }
 
     const db = getDB();
-    const collection = db.collection(COLLECTION_NAME);
+    const collection = db.collection(BOOKS_COLLECTION_NAME);
     const objectId = getObjectId(id);
 
     const result = await collection.deleteOne({ _id: objectId });
@@ -300,17 +437,12 @@ router.delete('/:id', async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: 'Book deleted successfully'
     });
   } catch (error) {
-    console.error('DELETE /api/books/:id error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error deleting book',
-      error: error.message
-    });
+    return next(error);
   }
 });
 
