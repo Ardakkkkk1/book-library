@@ -4,6 +4,7 @@ const sampleBooks = require('./sampleBooks');
 
 const DEFAULT_MIN_BOOKS = 20;
 const DEFAULT_BCRYPT_ROUNDS = 12;
+const SYSTEM_OWNER_USERNAME = 'system';
 
 function toBoolean(value, fallback) {
   if (value === undefined) {
@@ -17,42 +18,73 @@ function toBoolean(value, fallback) {
   return Boolean(value);
 }
 
+function resolveBcryptRounds() {
+  const rounds = Number.parseInt(process.env.BCRYPT_ROUNDS || `${DEFAULT_BCRYPT_ROUNDS}`, 10);
+  if (Number.isNaN(rounds) || rounds < 8 || rounds > 15) {
+    return DEFAULT_BCRYPT_ROUNDS;
+  }
+
+  return rounds;
+}
+
 async function ensureDefaultAdminUser() {
   const db = getDB();
   const usersCollection = db.collection(USERS_COLLECTION_NAME);
 
   const username = (process.env.ADMIN_USERNAME || 'admin').trim().toLowerCase();
-  const plainPassword = process.env.ADMIN_PASSWORD || 'admin12345';
-  const adminRole = (process.env.ADMIN_ROLE || 'admin').trim().toLowerCase();
-  const preHashedPassword = process.env.ADMIN_PASSWORD_HASH;
+  const plainPassword = typeof process.env.ADMIN_PASSWORD === 'string' ? process.env.ADMIN_PASSWORD : '';
+  const preHashedPassword = typeof process.env.ADMIN_PASSWORD_HASH === 'string' ? process.env.ADMIN_PASSWORD_HASH.trim() : '';
 
-  const existingUser = await usersCollection.findOne({ username });
+  if (!username) {
+    console.warn('[bootstrap] ADMIN_USERNAME is empty. Skipping admin bootstrap.');
+    return null;
+  }
+
+  const existingUser = await usersCollection.findOne({ username }, { projection: { _id: 1, username: 1, role: 1 } });
   if (existingUser) {
-    return;
+    if (existingUser.role !== 'admin') {
+      await usersCollection.updateOne(
+        { _id: existingUser._id },
+        { $set: { role: 'admin', updatedAt: new Date() } }
+      );
+    }
+
+    return {
+      _id: existingUser._id,
+      username: existingUser.username,
+      role: 'admin'
+    };
   }
 
   let passwordHash = '';
-  if (preHashedPassword && preHashedPassword.trim()) {
-    passwordHash = preHashedPassword.trim();
+  if (preHashedPassword) {
+    passwordHash = preHashedPassword;
+  } else if (plainPassword) {
+    passwordHash = await bcrypt.hash(plainPassword, resolveBcryptRounds());
   } else {
-    const rounds = Number.parseInt(process.env.BCRYPT_ROUNDS || `${DEFAULT_BCRYPT_ROUNDS}`, 10);
-    const normalizedRounds = Number.isNaN(rounds) ? DEFAULT_BCRYPT_ROUNDS : rounds;
-    passwordHash = await bcrypt.hash(plainPassword, normalizedRounds);
+    console.warn('[bootstrap] ADMIN_PASSWORD or ADMIN_PASSWORD_HASH is required to create the first admin user.');
+    return null;
   }
 
   const now = new Date();
-  await usersCollection.insertOne({
+  const result = await usersCollection.insertOne({
     username,
     passwordHash,
-    role: adminRole,
+    role: 'admin',
     createdAt: now,
     updatedAt: now
   });
 
-  console.log(`[bootstrap] Created default user: ${username}`);
+  console.log(`[bootstrap] Created default admin user: ${username}`);
+
+  return {
+    _id: result.insertedId,
+    username,
+    role: 'admin'
+  };
 }
 
-function buildBookDocument(book) {
+function buildBookDocument(book, ownerRef) {
   const now = new Date();
   return {
     title: book.title,
@@ -63,12 +95,47 @@ function buildBookDocument(book) {
     pages: book.pages,
     published_year: book.published_year,
     rating: book.rating,
+    ownerId: ownerRef ? ownerRef._id : null,
+    ownerUsername: ownerRef ? ownerRef.username : SYSTEM_OWNER_USERNAME,
     created_at: now,
     updated_at: now
   };
 }
 
-async function ensureMinimumBooks() {
+async function ensureBookOwnership(ownerRef) {
+  const db = getDB();
+  const booksCollection = db.collection(BOOKS_COLLECTION_NAME);
+
+  const update = ownerRef
+    ? {
+      $set: {
+        ownerId: ownerRef._id,
+        ownerUsername: ownerRef.username,
+        updated_at: new Date()
+      }
+    }
+    : {
+      $set: {
+        ownerId: null,
+        ownerUsername: SYSTEM_OWNER_USERNAME,
+        updated_at: new Date()
+      }
+    };
+
+  await booksCollection.updateMany(
+    {
+      $or: [
+        { ownerId: { $exists: false } },
+        { ownerId: null },
+        { ownerUsername: { $exists: false } },
+        { ownerUsername: '' }
+      ]
+    },
+    update
+  );
+}
+
+async function ensureMinimumBooks(ownerRef) {
   const shouldSeed = toBoolean(process.env.AUTO_SEED_BOOKS, true);
   if (!shouldSeed) {
     return;
@@ -87,7 +154,7 @@ async function ensureMinimumBooks() {
 
   for (const sample of sampleBooks) {
     const query = { isbn: sample.isbn };
-    const update = { $setOnInsert: buildBookDocument(sample) };
+    const update = { $setOnInsert: buildBookDocument(sample, ownerRef) };
     await booksCollection.updateOne(query, update, { upsert: true });
   }
 
@@ -96,8 +163,9 @@ async function ensureMinimumBooks() {
 }
 
 async function runBootstrap() {
-  await ensureDefaultAdminUser();
-  await ensureMinimumBooks();
+  const adminUser = await ensureDefaultAdminUser();
+  await ensureBookOwnership(adminUser);
+  await ensureMinimumBooks(adminUser);
 }
 
 module.exports = {

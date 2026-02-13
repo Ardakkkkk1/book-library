@@ -1,78 +1,116 @@
-# Book Library (Assignment 4 Ready)
-
-Full-stack web app for managing a realistic book catalog with session-based authentication and protected write operations.
+# Book Library (Final Project - Production Web Application)
 
 Live URL: https://book-library-swle.onrender.com/
 
-## Assignment 4 coverage
+Production-ready web app for managing books and related reviews with session auth, role-based access control, owner-based authorization, and protected API endpoints.
 
-- Web UI CRUD for `books` (create, read, update, delete)
-- Domain entity with realistic fields: `title`, `author`, `description`, `isbn`, `genre`, `pages`, `published_year`, `rating`
-- Session-based login (`/api/auth/login`) and logout (`/api/auth/logout`)
-- Session ID stored in cookie (HttpOnly, Secure in production, SameSite=Lax)
-- Authentication middleware protects all write operations (`POST/PUT/DELETE /api/books`)
-- Passwords stored as bcrypt hashes (`bcryptjs`)
-- Generic login errors (`Invalid credentials`)
-- Input validation + proper status codes + safe error handling
-- Auto-bootstrap to keep at least 20 realistic book records
+## Final project coverage
 
-## Tech stack
+- Same project from previous assignment, extended to final requirements
+- Node.js + Express + MongoDB
+- Modular structure: `routes/`, `controllers/`, `models/`, `middleware/`, `config/`, `database/`
+- Two related collections in domain logic:
+`books` + `reviews` (each review belongs to a book and user)
+- Pagination/filtering for large datasets on books and reviews
+- Session-based auth with bcrypt password hashing
+- Roles: `user` and `admin`
+- Owner-based authorization:
+users can modify only their own books/reviews
+- Admin extended permissions:
+admin can manage all books/reviews and access admin users endpoint
+- All write endpoints for domain data are protected
+- Validation + safe error handling
+- Secrets in environment variables (no hardcoded secrets)
 
-- Node.js + Express
-- MongoDB (native driver)
-- Session auth with `express-session`
-- Password hashing with `bcryptjs`
-- HTML/CSS/JS frontend (no framework)
+## Data model
+
+- `users`
+`username`, `passwordHash`, `role`, timestamps
+- `books`
+realistic book fields + `ownerId`, `ownerUsername`, timestamps
+- `reviews`
+`bookId`, `ownerId`, `ownerUsername`, `rating`, `comment`, timestamps
+
+Relations:
+
+- `reviews.bookId -> books._id`
+- `books.ownerId -> users._id`
+- `reviews.ownerId -> users._id`
+
+## API
+
+### Auth
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `GET /api/auth/me`
+- `GET /api/auth/users` (admin only)
+
+### Books
+
+- `GET /api/books` (supports filters + `page/limit`)
+- `GET /api/books/:id`
+- `POST /api/books` (auth required)
+- `PUT /api/books/:id` (owner/admin only)
+- `DELETE /api/books/:id` (owner/admin only)
+
+### Reviews
+
+- `GET /api/reviews` (supports `bookId` + pagination)
+- `GET /api/reviews/:id`
+- `POST /api/reviews` (auth required)
+- `PUT /api/reviews/:id` (owner/admin only)
+- `DELETE /api/reviews/:id` (owner/admin only)
 
 ## Local setup
 
 1. Install dependencies
+
 ```bash
 npm install
 ```
 
-2. Copy `.env.example` to `.env` and set real values.
+2. Copy `.env.example` to `.env` and set values (especially `SESSION_SECRET`, `MONGO_URI`, admin credentials).
 
-3. Start in development mode
+3. Start app
+
 ```bash
 npm run dev
 ```
 
 4. Open
-- App UI: `http://localhost:3000/`
-- Landing page: `http://localhost:3000/home`
 
-## Default login
+- Main app: `http://localhost:3000/`
+- Landing: `http://localhost:3000/home`
 
-On first start, if user does not exist, the app creates one admin user from env:
+## Bootstrap behavior
 
-- `ADMIN_USERNAME` (default: `admin`)
-- `ADMIN_PASSWORD` (default: `admin12345`)
-
-Password is hashed before storing to MongoDB.
-
-## API
-
-### Auth
-- `POST /api/auth/login`
-- `POST /api/auth/logout`
-- `GET /api/auth/me`
-
-### Books
-- `GET /api/books`
-- `GET /api/books/:id`
-- `POST /api/books` (auth required)
-- `PUT /api/books/:id` (auth required)
-- `DELETE /api/books/:id` (auth required)
+- Creates admin user only if `ADMIN_USERNAME` and (`ADMIN_PASSWORD` or `ADMIN_PASSWORD_HASH`) are configured and user does not exist yet
+- Seeds minimum books (`AUTO_SEED_BOOKS`, `MIN_BOOKS_COUNT`)
+- Migrates old books to ensure ownership metadata exists
 
 ## Deployment notes (Render)
 
-Set these environment variables in Render:
+Required env vars:
 
 - `NODE_ENV=production`
-- `MONGO_URI=<your MongoDB URI>`
-- `SESSION_SECRET=<long random secret>`
-- `ADMIN_USERNAME=<admin username>`
-- `ADMIN_PASSWORD=<admin password>` or `ADMIN_PASSWORD_HASH=<bcrypt hash>`
+- `MONGO_URI=<mongo-uri>`
+- `DB_NAME=book_library`
+- `SESSION_SECRET=<long-random-secret>`
+- `ADMIN_USERNAME=<admin-username>`
+- `ADMIN_PASSWORD=<strong-password>` or `ADMIN_PASSWORD_HASH=<bcrypt-hash>`
 
-In production, session cookie uses `Secure=true` and `HttpOnly=true`.
+Security notes:
+
+- Session cookie: `HttpOnly`, `SameSite=Lax`, `Secure=true` in production
+- In production, app fails fast if `SESSION_SECRET` is missing
+
+## Defense demo checklist
+
+1. Open deployed URL and login/register through web UI.
+2. Show CRUD for books from UI.
+3. Show reviews CRUD linked to books (related collection demo).
+4. Show owner-based restrictions with regular user.
+5. Show admin capabilities (`admin` can manage all + access users panel).
+6. Explain why write endpoints are protected and how validation/error handling works.

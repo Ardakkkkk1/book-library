@@ -10,12 +10,16 @@ services:
         value: production
       - key: MONGO_URI
         sync: false
+      - key: DB_NAME
+        value: book_library
       - key: SESSION_SECRET
         generateValue: true
       - key: ADMIN_USERNAME
         value: admin
       - key: ADMIN_PASSWORD
         sync: false
+      - key: BCRYPT_ROUNDS
+        value: "12"
       - key: AUTO_SEED_BOOKS
         value: "true"
       - key: MIN_BOOKS_COUNT

@@ -4,424 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Book Library Manager</title>
-  <style>
-    :root {
-      color-scheme: light;
-      --bg: #f2f5f9;
-      --panel: #ffffff;
-      --ink: #1f2937;
-      --ink-soft: #4b5563;
-      --line: #d1d5db;
-      --accent: #0f766e;
-      --accent-2: #115e59;
-      --danger: #b91c1c;
-      --danger-2: #991b1b;
-      --warn: #9a3412;
-      --ok-bg: #dcfce7;
-      --ok-text: #166534;
-      --err-bg: #fee2e2;
-      --err-text: #991b1b;
-      --info-bg: #dbeafe;
-      --info-text: #1d4ed8;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(180deg, #e2e8f0 0%, var(--bg) 24%);
-      color: var(--ink);
-    }
-
-    .page {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-
-    .header {
-      background: linear-gradient(135deg, #0f766e 0%, #0f4c81 100%);
-      color: #fff;
-      border-radius: 14px;
-      padding: 24px;
-      margin-bottom: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
-      box-shadow: 0 8px 24px rgba(15, 76, 129, 0.2);
-    }
-
-    .header h1 {
-      margin: 0;
-      font-size: 1.9rem;
-    }
-
-    .header p {
-      margin: 6px 0 0;
-      opacity: 0.95;
-    }
-
-    .nav {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .nav a {
-      color: #fff;
-      text-decoration: none;
-      border: 1px solid rgba(255, 255, 255, 0.55);
-      padding: 8px 12px;
-      border-radius: 999px;
-      font-size: 0.9rem;
-    }
-
-    .main {
-      display: grid;
-      gap: 16px;
-    }
-
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 18px;
-      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
-    }
-
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 14px;
-    }
-
-    .panel h2 {
-      margin: 0;
-      font-size: 1.2rem;
-    }
-
-    .badge {
-      border-radius: 999px;
-      padding: 6px 10px;
-      font-size: 0.82rem;
-      font-weight: 600;
-    }
-
-    .badge-off {
-      background: #ffedd5;
-      color: var(--warn);
-    }
-
-    .badge-on {
-      background: #dcfce7;
-      color: #166534;
-    }
-
-    .inline-form {
-      display: grid;
-      grid-template-columns: 1.2fr 1fr auto;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-
-    .hint {
-      margin: 0;
-      color: var(--ink-soft);
-      font-size: 0.9rem;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .stat-card {
-      background: linear-gradient(135deg, #f8fafc, #e2e8f0);
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 14px;
-      text-align: center;
-    }
-
-    .stat-value {
-      font-size: 1.8rem;
-      font-weight: 700;
-      line-height: 1;
-      margin-bottom: 6px;
-    }
-
-    .stat-label {
-      color: var(--ink-soft);
-      font-size: 0.9rem;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    .form-group.full {
-      grid-column: 1 / -1;
-    }
-
-    label {
-      font-size: 0.9rem;
-      font-weight: 600;
-    }
-
-    input,
-    textarea,
-    button {
-      font: inherit;
-    }
-
-    input,
-    textarea {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 10px;
-      background: #fff;
-      color: var(--ink);
-    }
-
-    textarea {
-      min-height: 90px;
-      resize: vertical;
-    }
-
-    input:disabled,
-    textarea:disabled,
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .button-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 6px;
-    }
-
-    button {
-      border: none;
-      border-radius: 8px;
-      padding: 10px 14px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    .btn-primary {
-      background: var(--accent);
-      color: #fff;
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      background: var(--accent-2);
-    }
-
-    .btn-secondary {
-      background: #e2e8f0;
-      color: #1f2937;
-    }
-
-    .btn-secondary:hover:not(:disabled) {
-      background: #cbd5e1;
-    }
-
-    .btn-danger {
-      background: var(--danger);
-      color: #fff;
-    }
-
-    .btn-danger:hover:not(:disabled) {
-      background: var(--danger-2);
-    }
-
-    .btn-small {
-      font-size: 0.85rem;
-      padding: 6px 10px;
-    }
-
-    .lock-label {
-      font-size: 0.82rem;
-      color: var(--ink-soft);
-      background: #f3f4f6;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 5px 10px;
-    }
-
-    .loading {
-      padding: 14px;
-      color: var(--ink-soft);
-    }
-
-    .table-wrap {
-      overflow-x: auto;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 760px;
-    }
-
-    th,
-    td {
-      padding: 10px;
-      border-bottom: 1px solid var(--line);
-      text-align: left;
-      vertical-align: top;
-      font-size: 0.92rem;
-    }
-
-    th {
-      background: #f8fafc;
-      font-weight: 700;
-    }
-
-    .rating {
-      background: #ecfeff;
-      color: #0e7490;
-      border: 1px solid #a5f3fc;
-      border-radius: 999px;
-      padding: 2px 8px;
-      display: inline-block;
-      font-weight: 700;
-    }
-
-    .actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .muted {
-      color: var(--ink-soft);
-      font-size: 0.85rem;
-    }
-
-    .empty {
-      padding: 18px;
-      color: var(--ink-soft);
-      text-align: center;
-    }
-
-    .alert {
-      display: none;
-      padding: 12px 14px;
-      border-radius: 8px;
-      font-weight: 600;
-      border: 1px solid transparent;
-    }
-
-    .alert.show {
-      display: block;
-    }
-
-    .alert-success {
-      background: var(--ok-bg);
-      color: var(--ok-text);
-      border-color: #86efac;
-    }
-
-    .alert-error {
-      background: var(--err-bg);
-      color: var(--err-text);
-      border-color: #fca5a5;
-    }
-
-    .alert-info {
-      background: var(--info-bg);
-      color: var(--info-text);
-      border-color: #93c5fd;
-    }
-
-    .modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(2, 6, 23, 0.45);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      z-index: 1000;
-    }
-
-    .modal-card {
-      background: #fff;
-      width: min(800px, 100%);
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      padding: 18px;
-    }
-
-    .modal-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .modal-head h3 {
-      margin: 0;
-    }
-
-    @media (max-width: 900px) {
-      .form-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .stats {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .inline-form {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 620px) {
-      .stats {
-        grid-template-columns: 1fr;
-      }
-
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="/books.css">
 </head>
 <body>
   <div class="page">
     <header class="header">
       <div>
         <h1>Book Library Manager</h1>
-        <p>Session-based authentication and protected CRUD operations</p>
+        <p>Secure CRUD with owner access, roles, and related reviews</p>
       </div>
       <nav class="nav">
         <a href="/home">Landing</a>
@@ -441,18 +31,21 @@
 
         <div id="loginSection">
           <form id="loginForm" class="inline-form">
-            <input type="text" id="loginUsername" placeholder="Username" autocomplete="username" required>
-            <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" required>
-            <button type="submit" class="btn-primary">Login</button>
+            <input type="text" id="loginUsername" placeholder="Username" required>
+            <input type="password" id="loginPassword" placeholder="Password" required>
+            <button type="submit" class="btn btn-primary">Login</button>
           </form>
-          <p class="hint">Write operations are disabled until you login.</p>
+          <form id="registerForm" class="inline-form">
+            <input type="text" id="registerUsername" placeholder="New username" required>
+            <input type="password" id="registerPassword" placeholder="New password (min 8)" required>
+            <button type="submit" class="btn btn-secondary">Register</button>
+          </form>
+          <p class="hint">Role <strong>user</strong> can modify only own books/reviews. <strong>admin</strong> can manage all.</p>
         </div>
 
         <div id="sessionSection" class="hidden">
           <p class="hint">Logged in as <strong id="currentUser">-</strong></p>
-          <div class="button-row">
-            <button id="logoutBtn" class="btn-secondary" type="button">Logout</button>
-          </div>
+          <button id="logoutBtn" class="btn btn-secondary" type="button">Logout</button>
         </div>
       </section>
 
@@ -463,11 +56,34 @@
         </div>
         <div class="stat-card">
           <div id="avgRating" class="stat-value">0.0</div>
-          <div class="stat-label">Average Rating</div>
+          <div class="stat-label">Avg Rating (Page)</div>
         </div>
         <div class="stat-card">
-          <div id="totalPages" class="stat-value">0</div>
-          <div class="stat-label">Total Pages</div>
+          <div id="pageBooksCount" class="stat-value">0</div>
+          <div class="stat-label">Books On Page</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Filters & Pagination</h2>
+        </div>
+        <form id="filtersForm" class="grid-4">
+          <input id="filterTitle" type="text" placeholder="Title">
+          <input id="filterAuthor" type="text" placeholder="Author">
+          <input id="filterGenre" type="text" placeholder="Genre">
+          <select id="pageSize">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="20">20</option>
+          </select>
+        </form>
+        <div class="toolbar">
+          <label><input type="checkbox" id="mineOnly"> Show only my books</label>
+          <div class="actions">
+            <button id="applyFiltersBtn" type="button" class="btn btn-primary btn-small">Apply</button>
+            <button id="clearFiltersBtn" type="button" class="btn btn-secondary btn-small">Clear</button>
+          </div>
         </div>
       </section>
 
@@ -476,529 +92,114 @@
           <h2>Add New Book</h2>
           <span id="writeLockLabel" class="lock-label">Read-only mode</span>
         </div>
-
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="title">Title *</label>
-            <input type="text" id="title" maxlength="200" required>
-          </div>
-          <div class="form-group">
-            <label for="author">Author *</label>
-            <input type="text" id="author" maxlength="200" required>
-          </div>
-          <div class="form-group">
-            <label for="genre">Genre</label>
-            <input type="text" id="genre" maxlength="100">
-          </div>
-          <div class="form-group">
-            <label for="isbn">ISBN</label>
-            <input type="text" id="isbn" maxlength="40">
-          </div>
-          <div class="form-group">
-            <label for="pages">Pages</label>
-            <input type="number" id="pages" min="1" max="10000">
-          </div>
-          <div class="form-group">
-            <label for="published_year">Published Year</label>
-            <input type="number" id="published_year" min="1000" max="2099">
-          </div>
-          <div class="form-group">
-            <label for="rating">Rating (0-10)</label>
-            <input type="number" id="rating" min="0" max="10" step="0.1">
-          </div>
-          <div class="form-group full">
-            <label for="description">Description</label>
-            <textarea id="description" maxlength="1500"></textarea>
-          </div>
+        <div class="grid-4">
+          <input id="title" type="text" placeholder="Title *" maxlength="200">
+          <input id="author" type="text" placeholder="Author *" maxlength="200">
+          <input id="genre" type="text" placeholder="Genre" maxlength="100">
+          <input id="isbn" type="text" placeholder="ISBN" maxlength="40">
+          <input id="pages" type="number" placeholder="Pages" min="1" max="10000">
+          <input id="published_year" type="number" placeholder="Published year" min="1000" max="2099">
+          <input id="rating" type="number" placeholder="Rating 0-10" min="0" max="10" step="0.1">
+          <textarea id="description" placeholder="Description" maxlength="1500"></textarea>
         </div>
-
-        <div class="button-row">
-          <button id="addBookBtn" type="button" class="btn-primary">Add Book</button>
-          <button id="clearFormBtn" type="button" class="btn-secondary">Clear</button>
+        <div class="actions">
+          <button id="addBookBtn" type="button" class="btn btn-primary">Add Book</button>
+          <button id="clearFormBtn" type="button" class="btn btn-secondary">Clear</button>
         </div>
       </section>
 
       <section class="panel">
         <div class="panel-header">
           <h2>Library Catalog</h2>
-          <button id="refreshBtn" type="button" class="btn-secondary btn-small">Refresh</button>
+          <button id="refreshBtn" type="button" class="btn btn-secondary btn-small">Refresh</button>
         </div>
+        <div class="toolbar">
+          <div id="bookPageInfo" class="hint">Page 1 / 1</div>
+          <div class="actions">
+            <button id="prevPageBtn" type="button" class="btn btn-secondary btn-small">Previous</button>
+            <button id="nextPageBtn" type="button" class="btn btn-secondary btn-small">Next</button>
+          </div>
+        </div>
+        <div id="booksLoading" class="hint hidden">Loading books...</div>
+        <div id="booksContainer" class="table-wrap"></div>
+      </section>
 
-        <div id="loading" class="loading hidden">Loading books...</div>
-        <div id="booksContainer" class="table-wrap">
-          <div class="empty">No books found.</div>
+      <section id="adminPanel" class="panel hidden">
+        <div class="panel-header">
+          <h2>Admin Users</h2>
+          <span class="pill">Admin only</span>
         </div>
+        <div class="toolbar">
+          <div id="usersPageInfo" class="hint">Users page 1 / 1</div>
+          <div class="actions">
+            <button id="prevUsersBtn" type="button" class="btn btn-secondary btn-small">Previous</button>
+            <button id="nextUsersBtn" type="button" class="btn btn-secondary btn-small">Next</button>
+            <button id="refreshUsersBtn" type="button" class="btn btn-secondary btn-small">Refresh</button>
+          </div>
+        </div>
+        <div id="usersLoading" class="hint hidden">Loading users...</div>
+        <div id="usersContainer" class="table-wrap"></div>
       </section>
     </main>
   </div>
 
   <div id="editModal" class="modal hidden">
     <div class="modal-card">
-      <div class="modal-head">
-        <h3>Edit Book</h3>
-        <button id="closeEditBtn" type="button" class="btn-secondary btn-small">Close</button>
+      <div class="panel-header">
+        <h2>Edit Book</h2>
+        <button id="closeEditBtn" type="button" class="btn btn-secondary btn-small">Close</button>
       </div>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="editTitle">Title *</label>
-          <input type="text" id="editTitle" maxlength="200" required>
-        </div>
-        <div class="form-group">
-          <label for="editAuthor">Author *</label>
-          <input type="text" id="editAuthor" maxlength="200" required>
-        </div>
-        <div class="form-group">
-          <label for="editGenre">Genre</label>
-          <input type="text" id="editGenre" maxlength="100">
-        </div>
-        <div class="form-group">
-          <label for="editIsbn">ISBN</label>
-          <input type="text" id="editIsbn" maxlength="40">
-        </div>
-        <div class="form-group">
-          <label for="editPages">Pages</label>
-          <input type="number" id="editPages" min="1" max="10000">
-        </div>
-        <div class="form-group">
-          <label for="editPublishedYear">Published Year</label>
-          <input type="number" id="editPublishedYear" min="1000" max="2099">
-        </div>
-        <div class="form-group">
-          <label for="editRating">Rating (0-10)</label>
-          <input type="number" id="editRating" min="0" max="10" step="0.1">
-        </div>
-        <div class="form-group full">
-          <label for="editDescription">Description</label>
-          <textarea id="editDescription" maxlength="1500"></textarea>
-        </div>
+      <div class="grid-4">
+        <input id="editTitle" type="text" placeholder="Title *" maxlength="200">
+        <input id="editAuthor" type="text" placeholder="Author *" maxlength="200">
+        <input id="editGenre" type="text" placeholder="Genre" maxlength="100">
+        <input id="editIsbn" type="text" placeholder="ISBN" maxlength="40">
+        <input id="editPages" type="number" placeholder="Pages" min="1" max="10000">
+        <input id="editPublishedYear" type="number" placeholder="Published year" min="1000" max="2099">
+        <input id="editRating" type="number" placeholder="Rating 0-10" min="0" max="10" step="0.1">
+        <textarea id="editDescription" placeholder="Description" maxlength="1500"></textarea>
       </div>
-
-      <div class="button-row">
-        <button id="saveEditBtn" type="button" class="btn-primary">Save Changes</button>
-        <button id="cancelEditBtn" type="button" class="btn-secondary">Cancel</button>
+      <div class="actions">
+        <button id="saveEditBtn" type="button" class="btn btn-primary">Save</button>
+        <button id="cancelEditBtn" type="button" class="btn btn-secondary">Cancel</button>
       </div>
     </div>
   </div>
 
-  <script>
-    const API_BASE = '/api/books';
-    const AUTH_BASE = '/api/auth';
-
-    let currentEditId = null;
-    let authUser = null;
-
-    const alertBox = document.getElementById('alertBox');
-    const authBadge = document.getElementById('authBadge');
-    const loginSection = document.getElementById('loginSection');
-    const sessionSection = document.getElementById('sessionSection');
-    const currentUserLabel = document.getElementById('currentUser');
-    const writePanel = document.getElementById('writePanel');
-    const writeLockLabel = document.getElementById('writeLockLabel');
-    const loadingBox = document.getElementById('loading');
-    const booksContainer = document.getElementById('booksContainer');
-    const editModal = document.getElementById('editModal');
-
-    function escapeHtml(value) {
-      return String(value)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-
-    function showAlert(message, type = 'success') {
-      alertBox.className = `alert alert-${type} show`;
-      alertBox.textContent = message;
-      window.clearTimeout(showAlert.timeoutId);
-      showAlert.timeoutId = window.setTimeout(() => {
-        alertBox.classList.remove('show');
-      }, 3500);
-    }
-
-    function setLoading(isLoading) {
-      loadingBox.classList.toggle('hidden', !isLoading);
-    }
-
-    function setWriteLocked(locked) {
-      const fields = writePanel.querySelectorAll('input, textarea, button');
-      fields.forEach((field) => {
-        field.disabled = locked;
-      });
-
-      writeLockLabel.textContent = locked ? 'Read-only mode' : 'Write access enabled';
-      if (locked) {
-        closeEditModal();
-      }
-    }
-
-    function updateAuthUI() {
-      const authenticated = Boolean(authUser);
-
-      authBadge.textContent = authenticated ? 'Authenticated' : 'Not authenticated';
-      authBadge.className = authenticated ? 'badge badge-on' : 'badge badge-off';
-
-      loginSection.classList.toggle('hidden', authenticated);
-      sessionSection.classList.toggle('hidden', !authenticated);
-      currentUserLabel.textContent = authenticated ? authUser.username : '-';
-
-      setWriteLocked(!authenticated);
-    }
-
-    async function apiRequest(url, options = {}) {
-      const init = {
-        credentials: 'same-origin',
-        ...options
-      };
-
-      if (init.body && !init.headers) {
-        init.headers = { 'Content-Type': 'application/json' };
-      }
-
-      const response = await fetch(url, init);
-      let result = null;
-      try {
-        result = await response.json();
-      } catch {
-        result = {
-          success: false,
-          message: 'Unexpected response from server'
-        };
-      }
-
-      return { response, result };
-    }
-
-    function handleUnauthorized() {
-      authUser = null;
-      updateAuthUI();
-      showAlert('Session expired or unauthorized. Please login again.', 'error');
-    }
-
-    function ensureAuth() {
-      if (authUser) {
-        return true;
-      }
-
-      showAlert('Please login to perform write operations.', 'info');
-      return false;
-    }
-
-    async function checkAuth() {
-      try {
-        const { result } = await apiRequest(`${AUTH_BASE}/me`);
-        if (result.success && result.data && result.data.authenticated) {
-          authUser = result.data.user;
-        } else {
-          authUser = null;
-        }
-      } catch {
-        authUser = null;
-      }
-
-      updateAuthUI();
-    }
-
-    async function login(event) {
-      event.preventDefault();
-
-      const username = document.getElementById('loginUsername').value.trim();
-      const password = document.getElementById('loginPassword').value;
-
-      if (!username || !password) {
-        showAlert('Username and password are required.', 'error');
-        return;
-      }
-
-      const { response, result } = await apiRequest(`${AUTH_BASE}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-
-      if (!response.ok || !result.success) {
-        showAlert(result.message || 'Login failed', 'error');
-        return;
-      }
-
-      authUser = result.data.user;
-      updateAuthUI();
-      document.getElementById('loginForm').reset();
-      showAlert('Login successful.', 'success');
-      loadBooks();
-    }
-
-    async function logout() {
-      await apiRequest(`${AUTH_BASE}/logout`, { method: 'POST' });
-      authUser = null;
-      updateAuthUI();
-      showAlert('Logged out.', 'info');
-      loadBooks();
-    }
-
-    function updateStats(books) {
-      const totalBooks = books.length;
-      const totalPages = books.reduce((sum, book) => sum + (Number(book.pages) || 0), 0);
-      const totalRating = books.reduce((sum, book) => sum + (Number(book.rating) || 0), 0);
-      const averageRating = totalBooks > 0 ? (totalRating / totalBooks).toFixed(1) : '0.0';
-
-      document.getElementById('totalBooks').textContent = totalBooks;
-      document.getElementById('totalPages').textContent = totalPages;
-      document.getElementById('avgRating').textContent = averageRating;
-    }
-
-    function displayBooks(books) {
-      if (!Array.isArray(books) || books.length === 0) {
-        booksContainer.innerHTML = '<div class="empty">No books found. Add one after login.</div>';
-        return;
-      }
-
-      const canWrite = Boolean(authUser);
-      let html = '<table><thead><tr>';
-      html += '<th>Title</th><th>Author</th><th>Genre</th><th>ISBN</th><th>Rating</th><th>Pages</th><th>Year</th><th>Actions</th>';
-      html += '</tr></thead><tbody>';
-
-      for (const book of books) {
-        html += '<tr>';
-        html += `<td><strong>${escapeHtml(book.title || '-')}</strong></td>`;
-        html += `<td>${escapeHtml(book.author || '-')}</td>`;
-        html += `<td>${escapeHtml(book.genre || '-')}</td>`;
-        html += `<td>${escapeHtml(book.isbn || '-')}</td>`;
-        html += `<td><span class="rating">${escapeHtml(book.rating ?? 0)}</span></td>`;
-        html += `<td>${escapeHtml(book.pages ?? '-')}</td>`;
-        html += `<td>${escapeHtml(book.published_year ?? '-')}</td>`;
-        html += '<td>';
-
-        if (canWrite) {
-          html += '<div class="actions">';
-          html += `<button class="btn-small btn-secondary" type="button" onclick="openEditModal('${book._id}')">Edit</button>`;
-          html += `<button class="btn-small btn-danger" type="button" onclick="deleteBook('${book._id}')">Delete</button>`;
-          html += '</div>';
-        } else {
-          html += '<span class="muted">Read-only</span>';
-        }
-
-        html += '</td></tr>';
-      }
-
-      html += '</tbody></table>';
-      booksContainer.innerHTML = html;
-    }
-
-    async function loadBooks() {
-      setLoading(true);
-
-      try {
-        const { result } = await apiRequest(API_BASE);
-        if (!result.success) {
-          showAlert(result.message || 'Failed to load books', 'error');
-          return;
-        }
-
-        const books = Array.isArray(result.data) ? result.data : [];
-        displayBooks(books);
-        updateStats(books);
-      } catch {
-        showAlert('Failed to load books', 'error');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    function clearCreateForm() {
-      document.getElementById('title').value = '';
-      document.getElementById('author').value = '';
-      document.getElementById('genre').value = '';
-      document.getElementById('isbn').value = '';
-      document.getElementById('pages').value = '';
-      document.getElementById('published_year').value = '';
-      document.getElementById('rating').value = '';
-      document.getElementById('description').value = '';
-    }
-
-    function collectCreatePayload() {
-      return {
-        title: document.getElementById('title').value.trim(),
-        author: document.getElementById('author').value.trim(),
-        genre: document.getElementById('genre').value.trim(),
-        isbn: document.getElementById('isbn').value.trim(),
-        pages: document.getElementById('pages').value ? Number.parseInt(document.getElementById('pages').value, 10) : null,
-        published_year: document.getElementById('published_year').value ? Number.parseInt(document.getElementById('published_year').value, 10) : null,
-        rating: document.getElementById('rating').value ? Number.parseFloat(document.getElementById('rating').value) : null,
-        description: document.getElementById('description').value.trim()
-      };
-    }
-
-    async function addBook() {
-      if (!ensureAuth()) {
-        return;
-      }
-
-      const payload = collectCreatePayload();
-      if (!payload.title || !payload.author) {
-        showAlert('Title and author are required.', 'error');
-        return;
-      }
-
-      const { response, result } = await apiRequest(API_BASE, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (response.status === 401) {
-        handleUnauthorized();
-        return;
-      }
-
-      if (!response.ok || !result.success) {
-        showAlert(result.message || 'Failed to create book', 'error');
-        return;
-      }
-
-      clearCreateForm();
-      showAlert('Book created successfully.', 'success');
-      loadBooks();
-    }
-
-    async function openEditModal(id) {
-      if (!ensureAuth()) {
-        return;
-      }
-
-      const { response, result } = await apiRequest(`${API_BASE}/${id}`);
-
-      if (response.status === 401) {
-        handleUnauthorized();
-        return;
-      }
-
-      if (!response.ok || !result.success) {
-        showAlert(result.message || 'Failed to load book details', 'error');
-        return;
-      }
-
-      const book = result.data || {};
-      currentEditId = id;
-
-      document.getElementById('editTitle').value = book.title || '';
-      document.getElementById('editAuthor').value = book.author || '';
-      document.getElementById('editGenre').value = book.genre || '';
-      document.getElementById('editIsbn').value = book.isbn || '';
-      document.getElementById('editPages').value = book.pages || '';
-      document.getElementById('editPublishedYear').value = book.published_year || '';
-      document.getElementById('editRating').value = book.rating || '';
-      document.getElementById('editDescription').value = book.description || '';
-
-      editModal.classList.remove('hidden');
-    }
-
-    function closeEditModal() {
-      currentEditId = null;
-      editModal.classList.add('hidden');
-    }
-
-    function collectEditPayload() {
-      return {
-        title: document.getElementById('editTitle').value.trim(),
-        author: document.getElementById('editAuthor').value.trim(),
-        genre: document.getElementById('editGenre').value.trim(),
-        isbn: document.getElementById('editIsbn').value.trim(),
-        pages: document.getElementById('editPages').value ? Number.parseInt(document.getElementById('editPages').value, 10) : null,
-        published_year: document.getElementById('editPublishedYear').value ? Number.parseInt(document.getElementById('editPublishedYear').value, 10) : null,
-        rating: document.getElementById('editRating').value ? Number.parseFloat(document.getElementById('editRating').value) : null,
-        description: document.getElementById('editDescription').value.trim()
-      };
-    }
-
-    async function saveEdit() {
-      if (!ensureAuth() || !currentEditId) {
-        return;
-      }
-
-      const payload = collectEditPayload();
-      if (!payload.title || !payload.author) {
-        showAlert('Title and author are required.', 'error');
-        return;
-      }
-
-      const { response, result } = await apiRequest(`${API_BASE}/${currentEditId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (response.status === 401) {
-        handleUnauthorized();
-        return;
-      }
-
-      if (!response.ok || !result.success) {
-        showAlert(result.message || 'Failed to update book', 'error');
-        return;
-      }
-
-      closeEditModal();
-      showAlert('Book updated successfully.', 'success');
-      loadBooks();
-    }
-
-    async function deleteBook(id) {
-      if (!ensureAuth()) {
-        return;
-      }
-
-      if (!window.confirm('Delete this book?')) {
-        return;
-      }
-
-      const { response, result } = await apiRequest(`${API_BASE}/${id}`, {
-        method: 'DELETE'
-      });
-
-      if (response.status === 401) {
-        handleUnauthorized();
-        return;
-      }
-
-      if (!response.ok || !result.success) {
-        showAlert(result.message || 'Failed to delete book', 'error');
-        return;
-      }
-
-      showAlert('Book deleted successfully.', 'success');
-      loadBooks();
-    }
-
-    document.getElementById('loginForm').addEventListener('submit', login);
-    document.getElementById('logoutBtn').addEventListener('click', logout);
-    document.getElementById('addBookBtn').addEventListener('click', addBook);
-    document.getElementById('clearFormBtn').addEventListener('click', clearCreateForm);
-    document.getElementById('refreshBtn').addEventListener('click', loadBooks);
-    document.getElementById('saveEditBtn').addEventListener('click', saveEdit);
-    document.getElementById('closeEditBtn').addEventListener('click', closeEditModal);
-    document.getElementById('cancelEditBtn').addEventListener('click', closeEditModal);
-
-    editModal.addEventListener('click', (event) => {
-      if (event.target === editModal) {
-        closeEditModal();
-      }
-    });
-
-    window.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') {
-        closeEditModal();
-      }
-    });
-
-    window.openEditModal = openEditModal;
-    window.deleteBook = deleteBook;
-
-    window.addEventListener('load', async () => {
-      await checkAuth();
-      await loadBooks();
-    });
-  </script>
+  <div id="reviewsModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="panel-header">
+        <h2 id="reviewsTitle">Reviews</h2>
+        <button id="closeReviewsBtn" type="button" class="btn btn-secondary btn-small">Close</button>
+      </div>
+      <div class="toolbar">
+        <div id="reviewsPageInfo" class="hint">Page 1 / 1</div>
+        <div class="actions">
+          <button id="prevReviewsBtn" type="button" class="btn btn-secondary btn-small">Previous</button>
+          <button id="nextReviewsBtn" type="button" class="btn btn-secondary btn-small">Next</button>
+          <button id="refreshReviewsBtn" type="button" class="btn btn-secondary btn-small">Refresh</button>
+        </div>
+      </div>
+      <div id="reviewsLoading" class="hint hidden">Loading reviews...</div>
+      <div id="reviewsContainer"></div>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2 id="reviewFormTitle">Add Review</h2>
+          <span id="reviewWriteLabel" class="lock-label">Login required</span>
+        </div>
+        <div class="grid-2">
+          <input id="reviewRating" type="number" placeholder="Rating 1-5" min="1" max="5" step="0.1">
+          <textarea id="reviewComment" placeholder="Comment" maxlength="1000"></textarea>
+        </div>
+        <div class="actions">
+          <button id="saveReviewBtn" type="button" class="btn btn-primary">Save Review</button>
+          <button id="cancelReviewEditBtn" type="button" class="btn btn-secondary">Cancel Edit</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="/books.js"></script>
 </body>
 </html>

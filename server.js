@@ -7,11 +7,12 @@ const cookieParser = require('cookie-parser');
 
 const { connectDB, closeDB } = require('./database/connection');
 const { runBootstrap } = require('./database/bootstrap');
-const { sessionConfig } = require('./config/session');
+const { sessionConfig, isEphemeralSessionSecret } = require('./config/session');
 const logger = require('./middleware/logger');
 const errorHandler = require('./middleware/errorHandler');
 const booksRouter = require('./routes/books');
 const authRouter = require('./routes/auth');
+const reviewsRouter = require('./routes/reviews');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -53,6 +54,7 @@ app.get('/contact', (req, res) => {
 // API Routes
 app.use('/api/auth', authRouter);
 app.use('/api/books', booksRouter);
+app.use('/api/reviews', reviewsRouter);
 
 app.use('/api', (req, res) => {
   res.status(404).json({
@@ -75,13 +77,14 @@ async function startServer() {
     await connectDB();
     await runBootstrap();
 
-    if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET === 'change-this-session-secret') {
-      console.warn('[security] SESSION_SECRET is not configured or uses default value.');
+    if (isEphemeralSessionSecret) {
+      console.warn('[security] SESSION_SECRET is not set. Using temporary in-memory secret for this run.');
     }
 
     app.listen(PORT, () => {
       console.log(`Server is running at http://localhost:${PORT}`);
       console.log(`Books API: http://localhost:${PORT}/api/books`);
+      console.log(`Reviews API: http://localhost:${PORT}/api/reviews`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
